@@ -1,0 +1,43 @@
+# ── OS / editor ─────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# ── Node / Vite (frontend) ──────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+frontend/*.log
+frontend/npm-debug.log*
+
+# ── PHP / Laravel (backend) ─────────────────────────────
+backend/vendor/
+backend/.env
+backend/.env.backup
+backend/.env.production
+backend/.phpunit.result.cache
+backend/Homestead.json
+backend/Homestead.yaml
+backend/auth.json
+backend/storage/framework/cache/data/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+backend/storage/logs/*.log
+backend/storage/app/public/media/
+backend/database/database.sqlite
+backend/database/*.sqlite-journal
+backend/public/storage
+backend/bootstrap/cache/*.php
+!backend/bootstrap/cache/.gitignore
+
+# ── Misc large/generated files ─────────────────────────
+*.pid
+*.sock
+.cache/
+coverage/
