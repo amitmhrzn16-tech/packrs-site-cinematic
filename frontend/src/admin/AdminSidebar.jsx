@@ -26,14 +26,11 @@ export default function AdminSidebar({ user, badges = {} }) {
 
   return (
     <aside className="hidden md:flex w-60 flex-col border-r border-slate-800 bg-slate-950/60 backdrop-blur-md">
-      <Link to="/admin" className="flex items-center gap-2 px-5 py-4 border-b border-slate-800">
-        <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-packrs-teal to-packrs-yellow font-display font-black text-slate-950">
-          P
+      <Link to="/admin" className="flex items-center gap-3 px-5 py-4 border-b border-slate-800">
+        <img src="/packrs-logo.png" alt="Packrs" className="h-8 w-auto" width="140" height="60" />
+        <span className="text-[10px] uppercase tracking-[0.25em] text-slate-500 border-l border-slate-800 pl-3">
+          Admin
         </span>
-        <div className="leading-tight">
-          <div className="font-display text-sm font-bold tracking-wide">Packrs Admin</div>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Dashboard</div>
-        </div>
       </Link>
 
       <nav className="flex-1 px-3 py-4 space-y-1">

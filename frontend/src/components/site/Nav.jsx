@@ -28,11 +28,13 @@ export default function Nav() {
       )}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="group flex items-center gap-2">
-          <span className="relative inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-packrs-orange to-packrs-ember shadow-glowSoft">
-            <span className="font-display text-base font-black text-packrs-navy">P</span>
-          </span>
-          <span className="font-display text-lg font-bold tracking-tight">Packrs</span>
+        <Link to="/" className="group flex items-center" aria-label="Packrs Courier — Home">
+          <img
+            src="/packrs-logo.png"
+            alt="Packrs Courier"
+            className="h-9 w-auto sm:h-10 transition group-hover:opacity-90"
+            width="180" height="80"
+          />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

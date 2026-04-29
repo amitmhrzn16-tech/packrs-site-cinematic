@@ -7,12 +7,7 @@ export default function Footer() {
     <footer className="mt-24 border-t border-white/10 bg-white/[0.025]">
       <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-4 lg:px-8">
         <div className="lg:col-span-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-packrs-orange to-packrs-ember font-display text-base font-black text-packrs-navy">
-              P
-            </span>
-            <span className="font-display text-lg font-bold">{site.name}</span>
-          </div>
+          <img src="/packrs-logo.png" alt="Packrs Courier" className="h-12 w-auto" width="240" height="100" />
           <p className="mt-4 max-w-sm text-sm text-white/60">{site.description}</p>
           <div className="mt-6 space-y-2 text-sm text-white/60">
             <div className="flex items-center gap-2">
