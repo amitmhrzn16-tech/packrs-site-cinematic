@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Services\MarketingLeadDispatcher;
 use App\Services\SlackNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,6 +34,14 @@ class BookingController extends Controller
         // Best-effort Slack notify — never blocks or fails the response.
         try {
             SlackNotification::make()->notifyNewBooking($booking);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        // Forward to the marketing leads CRM (Meta/TikTok/Google leads live there too).
+        // Silent no-op if MARKETING_LEADS_WEBHOOK_URL isn't configured.
+        try {
+            MarketingLeadDispatcher::make()->dispatch($booking);
         } catch (\Throwable $e) {
             report($e);
         }
