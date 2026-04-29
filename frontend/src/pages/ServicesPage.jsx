@@ -4,13 +4,10 @@ import { site } from '../lib/site.js';
 import PageHeader from '../components/site/PageHeader.jsx';
 import DynamicSeo from '../components/site/DynamicSeo.jsx';
 import { useSiteContent } from '../lib/useSiteContent.js';
+import { defaultsFor } from '../lib/contentSchema.js';
 
 export default function ServicesPage() {
-  const t = useSiteContent('services', {
-    eyebrow: 'Services',
-    title: 'Everything we deliver.',
-    description: 'Five core services covering every common parcel-logistics need across the Kathmandu Valley.',
-  });
+  const t = useSiteContent('services', defaultsFor('services'));
   return (
     <>
       <DynamicSeo page="services" title="Courier Services in Kathmandu Valley" description={t.description} />
