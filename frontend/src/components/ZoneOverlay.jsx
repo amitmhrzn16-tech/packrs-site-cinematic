@@ -3,6 +3,8 @@ import { useStore } from '../lib/store.js';
 import StatsCounter from './StatsCounter.jsx';
 import TrackingPanel from './TrackingPanel.jsx';
 import ContactPanel from './ContactPanel.jsx';
+import { useSiteContent } from '../lib/useSiteContent.js';
+import { defaultsFor } from '../lib/contentSchema.js';
 
 const fade = {
   initial: { opacity: 0, y: 16 },
@@ -14,6 +16,7 @@ const fade = {
 export default function ZoneOverlay({ stats }) {
   const zone = useStore((s) => s.zone);
   const scroll = useStore((s) => s.scroll);
+  const t = useSiteContent('home', defaultsFor('home'));
 
   // 6h → 0h clock for zone 2
   const clock = Math.max(0, 6 - Math.min(1, Math.max(0, (scroll - 0.2) / 0.2)) * 6);
@@ -23,13 +26,11 @@ export default function ZoneOverlay({ stats }) {
       <AnimatePresence mode="wait">
         {zone === 0 && (
           <motion.section key="z0" {...fade} className="pointer-events-auto max-w-2xl">
-            <p className="text-packrs-orange text-xs uppercase tracking-[0.3em]">Home · The Valley Rush</p>
+            <p className="text-packrs-orange text-xs uppercase tracking-[0.3em]">{t.z0_eyebrow}</p>
             <h1 className="font-display text-5xl md:text-7xl leading-[1.05] mt-3">
-              KTM VALLEY.<br/><span className="text-packrs-orange">4–6 HOUR PROMISE.</span>
+              {t.z0_title_line1}<br/><span className="text-packrs-orange">{t.z0_title_line2}</span>
             </h1>
-            <p className="text-white/70 mt-4 text-base md:text-lg max-w-xl">
-              From Hadigaun HQ to your customer's doorstep — every parcel carrying happiness.
-            </p>
+            <p className="text-white/70 mt-4 text-base md:text-lg max-w-xl">{t.z0_subtitle}</p>
             <div className="mt-8 flex gap-3 items-center">
               <span className="text-xs text-white/50 uppercase tracking-[0.2em]">Scroll ↓</span>
               <div className="w-px h-8 bg-white/20" />
@@ -40,19 +41,19 @@ export default function ZoneOverlay({ stats }) {
 
         {zone === 1 && (
           <motion.section key="z1" {...fade} className="pointer-events-auto max-w-xl">
-            <p className="text-packrs-ember text-xs uppercase tracking-[0.3em]">About Us · The Rush</p>
+            <p className="text-packrs-ember text-xs uppercase tracking-[0.3em]">{t.z1_eyebrow}</p>
             <h2 className="font-display text-5xl md:text-6xl mt-2 leading-[1.05]">
-              AI-EMPOWERED<br/><span className="text-packrs-orange">HAPPINESS.</span>
+              {t.z1_title_line1}<br/><span className="text-packrs-orange">{t.z1_title_line2}</span>
             </h2>
             <div className="mt-6 flex items-end gap-6">
               <div>
                 <div className="font-display text-6xl md:text-7xl text-packrs-orange drop-shadow-[0_0_20px_rgba(244,180,0,0.5)] tabular-nums">
-                  30M+
+                  {t.z1_big_number}
                 </div>
-                <div className="text-[10px] uppercase tracking-[0.3em] text-white/60 mt-1">Parcels Delivered</div>
+                <div className="text-[10px] uppercase tracking-[0.3em] text-white/60 mt-1">{t.z1_big_number_label}</div>
               </div>
               <div className="glass px-5 py-4">
-                <div className="text-[10px] uppercase tracking-[0.3em] text-white/50">SLA</div>
+                <div className="text-[10px] uppercase tracking-[0.3em] text-white/50">{t.z1_sla_label}</div>
                 <div className="font-display text-3xl text-white tabular-nums">{clock.toFixed(1)}h</div>
               </div>
             </div>
@@ -61,13 +62,11 @@ export default function ZoneOverlay({ stats }) {
 
         {zone === 2 && (
           <motion.section key="z2" {...fade} className="pointer-events-auto max-w-3xl">
-            <p className="text-packrs-orange text-xs uppercase tracking-[0.3em]">Services Zone</p>
+            <p className="text-packrs-orange text-xs uppercase tracking-[0.3em]">{t.z2_eyebrow}</p>
             <h2 className="font-display text-5xl md:text-6xl mt-2 leading-[1.05]">
-              556 LOCATIONS.<br/><span className="text-packrs-orange">NATIONAL COVERAGE.</span>
+              {t.z2_title_line1}<br/><span className="text-packrs-orange">{t.z2_title_line2}</span>
             </h2>
-            <p className="text-white/70 mt-3 max-w-xl">
-              From Kathmandu to all 77 districts — every <span className="text-packrs-ember font-semibold">PING!</span> is a parcel landing.
-            </p>
+            <p className="text-white/70 mt-3 max-w-xl">{t.z2_subtitle}</p>
             <div className="mt-6">
               <StatsCounter stats={stats} />
             </div>
@@ -76,9 +75,9 @@ export default function ZoneOverlay({ stats }) {
 
         {zone === 3 && (
           <motion.section key="z3" {...fade} className="pointer-events-auto max-w-md ml-auto">
-            <p className="text-packrs-ember text-xs uppercase tracking-[0.3em]">Tracking · Predictive Ghosting</p>
+            <p className="text-packrs-ember text-xs uppercase tracking-[0.3em]">{t.z3_eyebrow}</p>
             <h2 className="font-display text-4xl md:text-5xl mt-2 leading-[1.05]">
-              PREDICTING YOUR<br/><span className="text-packrs-orange">PACKAGE…</span>
+              {t.z3_title_line1}<br/><span className="text-packrs-orange">{t.z3_title_line2}</span>
             </h2>
             <div className="mt-6">
               <TrackingPanel />
@@ -88,13 +87,11 @@ export default function ZoneOverlay({ stats }) {
 
         {zone === 4 && (
           <motion.section key="z4" {...fade} className="pointer-events-auto max-w-xl">
-            <p className="text-packrs-orange text-xs uppercase tracking-[0.3em]">Delivery Zone</p>
+            <p className="text-packrs-orange text-xs uppercase tracking-[0.3em]">{t.z4_eyebrow}</p>
             <h2 className="font-display text-5xl md:text-6xl mt-2 leading-[1.05]">
-              30 MILLION<br/>SMILES<br/><span className="text-packrs-orange">DELIVERED.</span>
+              {t.z4_title_line1}<br/>{t.z4_title_line2}<br/><span className="text-packrs-orange">{t.z4_title_line3}</span>
             </h2>
-            <p className="text-white/70 mt-3 max-w-md">
-              Cash-on-delivery, reconciled the second the rider hands the parcel over. Listen for the ping.
-            </p>
+            <p className="text-white/70 mt-3 max-w-md">{t.z4_subtitle}</p>
             <div className="mt-6">
               <ContactPanel />
             </div>

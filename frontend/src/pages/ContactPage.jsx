@@ -2,16 +2,15 @@ import { Mail, MapPin, Phone, Clock } from 'lucide-react';
 import { site } from '../lib/site.js';
 import PageHeader from '../components/site/PageHeader.jsx';
 import DynamicSeo from '../components/site/DynamicSeo.jsx';
+import { useSiteContent } from '../lib/useSiteContent.js';
+import { defaultsFor } from '../lib/contentSchema.js';
 
 export default function ContactPage() {
+  const t = useSiteContent('contact', defaultsFor('contact'));
   return (
     <>
-      <DynamicSeo page="contact" title="Contact Packrs Courier" description="Reach Packrs Courier — phone, email, address, and business enquiries." />
-      <PageHeader
-        eyebrow="Contact"
-        title="Talk to a human."
-        description="We answer calls and messages seven days a week. For urgent pickups, calling is fastest."
-      />
+      <DynamicSeo page="contact" title="Contact Packrs Courier" description={t.description} />
+      <PageHeader eyebrow={t.eyebrow} title={t.title} description={t.description} />
       <section className="pb-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -22,10 +21,8 @@ export default function ContactPage() {
           </div>
 
           <div className="mt-10 rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center sm:p-12">
-            <h3 className="font-display text-2xl font-bold">Have a business or bulk enquiry?</h3>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
-              E-commerce sellers, bulk senders, and recurring-delivery clients — email us for a tailored plan and volume-friendly pricing.
-            </p>
+            <h3 className="font-display text-2xl font-bold">{t.business_heading}</h3>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">{t.business_body}</p>
             <a
               href={`mailto:${site.email}?subject=Business%20enquiry`}
               className="mt-6 inline-flex btn-glow"
