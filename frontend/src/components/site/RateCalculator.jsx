@@ -129,10 +129,22 @@ export default function RateCalculator() {
               </p>
             )}
             {selectedRate?.areas_covered?.length > 0 && (
-              <p className="mt-1 text-[11px] text-white/55 flex items-start gap-1">
-                <MapPin size={11} className="mt-0.5 shrink-0 text-packrs-teal" />
-                <span><span className="text-white/75">Areas covered:</span> {selectedRate.areas_covered.slice(0, 6).join(', ')}{selectedRate.areas_covered.length > 6 ? `, +${selectedRate.areas_covered.length - 6} more` : ''}</span>
-              </p>
+              <div className="mt-2">
+                <div className="flex items-center gap-1 text-[11px] text-white/55">
+                  <MapPin size={11} className="shrink-0 text-packrs-teal" />
+                  <span className="text-white/75">Areas covered ({selectedRate.areas_covered.length})</span>
+                </div>
+                <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                  {selectedRate.areas_covered.map((area) => (
+                    <li
+                      key={area}
+                      className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-0.5 text-[11px] text-white/70 capitalize"
+                    >
+                      {area.toLowerCase()}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
             {selectedRate?.contact_number && (
               <p className="mt-1 text-[11px] text-white/55 flex items-center gap-1">
