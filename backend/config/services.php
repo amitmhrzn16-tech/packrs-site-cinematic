@@ -35,4 +35,21 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Marketing Leads CRM
+    |--------------------------------------------------------------------------
+    |
+    | Where to forward each new pickup booking so it shows up alongside
+    | Meta/TikTok/Google ad leads. The dispatcher signs every payload with
+    | HMAC-SHA256 using `webhook_secret`. Leave `webhook_url` empty to disable.
+    |
+    */
+
+    'marketing' => [
+        'webhook_url'    => env('MARKETING_LEADS_WEBHOOK_URL'),
+        'webhook_secret' => env('MARKETING_LEADS_WEBHOOK_SECRET'),
+        'timeout'        => (int) env('MARKETING_LEADS_TIMEOUT', 4),
+    ],
+
 ];
