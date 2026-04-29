@@ -29,10 +29,8 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-slate-950 grid place-items-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <span className="inline-grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-packrs-teal to-packrs-yellow font-display font-black text-slate-950 text-xl">
-            P
-          </span>
-          <h1 className="mt-4 font-display text-2xl font-bold text-white">Packrs Admin</h1>
+          <img src="/packrs-logo.png" alt="Packrs Courier" className="mx-auto h-14 w-auto" width="280" height="120" />
+          <p className="mt-4 text-xs uppercase tracking-[0.3em] text-slate-500">Admin Portal</p>
           <p className="mt-1 text-sm text-slate-400">Sign in with your admin account.</p>
         </div>
 
