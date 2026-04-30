@@ -42,7 +42,13 @@ jobs:
       - name: Prepare SSH key
         run: |
           mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" | tr -d '\r' > ~/.ssh/deploy_key
+          # Support both secret formats:
+          # 1) true multiline private key
+          # 2) one-line key with literal \n escapes
+          printf '%s' "${{ secrets.DEPLOY_SSH_KEY }}" \
+            | sed 's/\\r$//' \
+            | sed 's/\\n/\n/g' \
+            > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keygen -lf ~/.ssh/deploy_key
 
