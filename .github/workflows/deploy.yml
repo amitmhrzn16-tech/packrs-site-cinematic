@@ -39,10 +39,12 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      - name: Start SSH agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" | tr -d '\r' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keygen -lf ~/.ssh/deploy_key
 
       - name: Trust deploy host
         run: |
@@ -55,12 +57,12 @@ jobs:
             --exclude=".git*" \
             --exclude="node_modules" \
             --exclude=".env" \
-            -e "ssh -p ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=yes" \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
             ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}"
 
       - name: Run post-deploy commands
         run: |
-          ssh -p "${{ secrets.DEPLOY_PORT }}" -o StrictHostKeyChecking=yes "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" '
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" '
             cd "${{ secrets.DEPLOY_PATH }}"
             composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
             php artisan migrate --force
