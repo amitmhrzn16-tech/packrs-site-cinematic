@@ -4,7 +4,10 @@ import { adminApi } from './api.js';
 import AdminPageShell from './AdminPageShell.jsx';
 import { CONTENT_SCHEMA, PAGES } from '../lib/contentSchema.js';
 
-const API_ORIGIN = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/api\/v1\/?$/, '');
+const rawApi = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
+const API_ORIGIN = rawApi.startsWith('http')
+  ? rawApi.replace(/\/api\/v1\/?$/, '')
+  : (typeof window !== 'undefined' ? window.location.origin : '');
 const absoluteUrl = (p) => p?.startsWith('http') ? p : p ? `${API_ORIGIN}${p.startsWith('/') ? '' : '/'}${p}` : '';
 
 export default function AdminContent() {
