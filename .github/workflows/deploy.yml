@@ -42,13 +42,35 @@ jobs:
       - name: Prepare SSH key
         run: |
           mkdir -p ~/.ssh
-          # Support both secret formats:
-          # 1) true multiline private key
-          # 2) one-line key with literal \n escapes
-          printf '%s' "${{ secrets.DEPLOY_SSH_KEY }}" \
-            | sed 's/\\r$//' \
-            | sed 's/\\n/\n/g' \
-            > ~/.ssh/deploy_key
+          RAW_KEY='${{ secrets.DEPLOY_SSH_KEY }}'
+          if [ -z "$RAW_KEY" ]; then
+            echo "DEPLOY_SSH_KEY is empty or missing."
+            exit 1
+          fi
+
+          # Fail fast if a public key was pasted instead of a private key.
+          if printf '%s' "$RAW_KEY" | grep -q '^ssh-ed25519 '; then
+            echo "DEPLOY_SSH_KEY looks like a public key. Paste the private key block instead."
+            exit 1
+          fi
+
+          # Format A: proper/private key text (multiline or literal \n-escaped)
+          if printf '%s' "$RAW_KEY" | grep -q 'BEGIN .*PRIVATE KEY'; then
+            printf '%s' "$RAW_KEY" \
+              | sed 's/\\n/\n/g' \
+              | tr -d '\r' \
+              > ~/.ssh/deploy_key
+          else
+            # Format B: base64-encoded private key pasted into DEPLOY_SSH_KEY
+            printf '%s' "$RAW_KEY" \
+              | tr -d '\r\n' \
+              | base64 -d \
+              > ~/.ssh/deploy_key || {
+                echo "DEPLOY_SSH_KEY is neither a valid private key block nor decodable base64."
+                exit 1
+              }
+          fi
+
           chmod 600 ~/.ssh/deploy_key
           ssh-keygen -lf ~/.ssh/deploy_key
 
