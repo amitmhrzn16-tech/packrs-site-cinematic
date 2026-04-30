@@ -2,98 +2,45 @@ name: Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
 
 concurrency:
-  group: production-deploy
+  group: deploy-production
   cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.3"
-          tools: composer:v2
-          coverage: none
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install PHP dependencies
-        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
-
-      - name: Install Node dependencies
-        run: npm ci
-
-      - name: Build frontend assets
-        run: npm run build
-
-      - name: Prepare SSH key
+      - name: Record host key
         run: |
           mkdir -p ~/.ssh
-          RAW_KEY='${{ secrets.DEPLOY_SSH_KEY }}'
-          if [ -z "$RAW_KEY" ]; then
-            echo "DEPLOY_SSH_KEY is empty or missing."
-            exit 1
-          fi
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
-          # Fail fast if a public key was pasted instead of a private key.
-          if printf '%s' "$RAW_KEY" | grep -q '^ssh-ed25519 '; then
-            echo "DEPLOY_SSH_KEY looks like a public key. Paste the private key block instead."
-            exit 1
-          fi
-
-          # Format A: proper/private key text (multiline or literal \n-escaped)
-          if printf '%s' "$RAW_KEY" | grep -q 'BEGIN .*PRIVATE KEY'; then
-            printf '%s' "$RAW_KEY" \
-              | sed 's/\\n/\n/g' \
-              | tr -d '\r' \
-              > ~/.ssh/deploy_key
-          else
-            # Format B: base64-encoded private key pasted into DEPLOY_SSH_KEY
-            printf '%s' "$RAW_KEY" \
-              | tr -d '\r\n' \
-              | base64 -d \
-              > ~/.ssh/deploy_key || {
-                echo "DEPLOY_SSH_KEY is neither a valid private key block nor decodable base64."
-                exit 1
-              }
-          fi
-
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keygen -lf ~/.ssh/deploy_key
-
-      - name: Trust deploy host
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
-
-      - name: Deploy project files
-        run: |
-          rsync -avzr --delete \
-            --exclude=".git*" \
-            --exclude="node_modules" \
-            --exclude=".env" \
-            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
-            ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}"
-
-      - name: Run post-deploy commands
-        run: |
-          ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" '
+      - name: Run deploy on server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 30m
+          script: |
+            set -euo pipefail
             cd "${{ secrets.DEPLOY_PATH }}"
-            composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
-            php artisan migrate --force
-            php artisan db:seed --force
-            php artisan optimize:clear
-          '
+            if [ ! -e .git ]; then
+              echo "ERROR: DEPLOY_PATH is not a git clone (.git missing). Clone the repo here first."
+              exit 1
+            fi
+            if ! git remote get-url origin >/dev/null 2>&1; then
+              ORIGIN_URL="${{ secrets.DEPLOY_ORIGIN_URL }}"
+              if [ -z "$ORIGIN_URL" ]; then
+                ORIGIN_URL="git@github.com:amitmhrzn16-tech/packrs-site-cinematic.git"
+              fi
+              echo "Adding missing git remote origin -> $ORIGIN_URL"
+              git remote add origin "$ORIGIN_URL"
+            fi
+            echo "Using origin: $(git remote get-url origin)"
+            git fetch origin main
+            git reset --hard origin/main
+            bash scripts/deploy.sh
