@@ -8,7 +8,6 @@ fi
 
 echo "==> Ensure Laravel writable directories"
 mkdir -p storage/framework/{cache/data,sessions,views,testing} storage/logs bootstrap/cache
-chmod -R ug+rwX storage bootstrap/cache
 
 echo "==> Composer install"
 composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
