@@ -27,7 +27,14 @@ jobs:
           command_timeout: 30m
           script: |
             set -euo pipefail
-            cd "${{ secrets.DEPLOY_PATH }}"
+            DEPLOY_PATH_RAW='${{ secrets.DEPLOY_PATH }}'
+            DEPLOY_PATH="$(printf '%s' "$DEPLOY_PATH_RAW" | tr -d '\r' | sed 's/^"//; s/"$//; s/[[:space:]]*$//')"
+            if [ -z "$DEPLOY_PATH" ]; then
+              echo "ERROR: DEPLOY_PATH secret is empty."
+              exit 1
+            fi
+            echo "Deploy path: $DEPLOY_PATH"
+            cd "$DEPLOY_PATH"
             if [ ! -e .git ]; then
               echo "ERROR: DEPLOY_PATH is not a git clone (.git missing). Clone the repo here first."
               exit 1
