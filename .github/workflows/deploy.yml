@@ -59,16 +59,11 @@ jobs:
             ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}"
 
       - name: Run post-deploy commands
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          script_stop: true
-          script: |
+        run: |
+          ssh -p "${{ secrets.DEPLOY_PORT }}" -o StrictHostKeyChecking=yes "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" '
             cd "${{ secrets.DEPLOY_PATH }}"
             composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
             php artisan migrate --force
             php artisan db:seed --force
             php artisan optimize:clear
+          '
