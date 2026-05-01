@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Calculator, ChevronDown, MapPin, Phone } from 'lucide-react';
 
-// Per-location rate cards live in /public/data/rates.json (1,168 rows from the
-// uploaded xlsx). Inside-valley + branch-delivery use single flat presets — they
-// don't vary by destination.
+// Live rates come from /api/v1/rates (admin uploads / row edits surface here
+// without auth). The static /data/rates.json snapshot is kept as a fallback
+// for local dev when the API isn't reachable. Inside-valley + branch-delivery
+// use flat presets — they don't vary by destination.
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 const PRESETS = {
   inside_valley:   { base_rate: 100, base_kg_limit: 3, additional_kg_mode: 'flat',          additional_kg_rate: 50 },
@@ -51,10 +53,25 @@ export default function RateCalculator() {
   const [weight, setWeight] = useState('1');
 
   useEffect(() => {
-    fetch('/data/rates.json')
-      .then((r) => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
-      .then(setRates)
-      .catch((e) => setLoadError(e.message));
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch(`${API_BASE}/rates`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        if (!cancelled) setRates(data);
+      } catch (apiErr) {
+        try {
+          const r = await fetch('/data/rates.json');
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          const data = await r.json();
+          if (!cancelled) setRates(data);
+        } catch (fallbackErr) {
+          if (!cancelled) setLoadError(apiErr.message);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const svc = useMemo(() => SERVICE_TYPES.find((s) => s.value === serviceType), [serviceType]);
