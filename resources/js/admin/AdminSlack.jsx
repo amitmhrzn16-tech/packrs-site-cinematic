@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MessageSquare as SlackIcon, Send, ToggleLeft, ToggleRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { MessageSquare as SlackIcon, Send, ToggleLeft, ToggleRight, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
 import { adminApi } from './api.js';
 import AdminPageShell from './AdminPageShell.jsx';
 
@@ -7,6 +7,7 @@ export default function AdminSlack() {
   const [s, setS] = useState(null);
   const [busy, setBusy] = useState(false);
   const [test, setTest] = useState(null);
+  const [testInfo, setTestInfo] = useState(null);
 
   useEffect(() => { adminApi.slack.show().then((r) => setS(r.data)).catch(() => {}); }, []);
 
@@ -20,11 +21,12 @@ export default function AdminSlack() {
 
   async function sendTest() {
     setTest('sending');
+    setTestInfo(null);
     try {
       const r = await adminApi.slack.test();
       setTest(r.ok ? 'ok' : 'fail');
+      setTestInfo({ blockers: r.blockers ?? [], willPostRealEvents: !!r.will_post_real_events });
     } catch { setTest('fail'); }
-    setTimeout(() => setTest(null), 4000);
   }
 
   if (!s) return <AdminPageShell title="Slack"><p className="text-sm text-slate-500">Loading…</p></AdminPageShell>;
@@ -35,6 +37,40 @@ export default function AdminSlack() {
       description="Pings your Slack channel whenever a pickup is booked or other events fire."
     >
       <div className="max-w-2xl space-y-6">
+        {s.webhook_url && (!s.enabled || !s.notify_bookings) && (
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
+            <AlertTriangle className="h-5 w-5 shrink-0 text-amber-300 mt-0.5" />
+            <div className="flex-1 text-sm">
+              <div className="font-semibold text-amber-200">Slack is configured but new pickups won't notify.</div>
+              <p className="mt-1 text-xs text-amber-200/80">
+                The "Send test" button works because it only checks the webhook URL.
+                Real booking events also require the master toggle and the
+                "Notify on new pickup booking" switch to both be on.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {!s.enabled && (
+                  <button
+                    onClick={() => save({ enabled: true })}
+                    disabled={busy}
+                    className="rounded-md bg-amber-400 px-3 py-1 text-xs font-semibold text-slate-950 hover:bg-amber-300 disabled:opacity-50"
+                  >
+                    Enable Slack integration
+                  </button>
+                )}
+                {!s.notify_bookings && (
+                  <button
+                    onClick={() => save({ notify_bookings: true })}
+                    disabled={busy}
+                    className="rounded-md bg-amber-400 px-3 py-1 text-xs font-semibold text-slate-950 hover:bg-amber-300 disabled:opacity-50"
+                  >
+                    Turn on booking notifications
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <Field label="Incoming Webhook URL" hint="Create an Incoming Webhook in your Slack workspace and paste the URL here.">
           <input
             type="url"
@@ -121,8 +157,23 @@ export default function AdminSlack() {
           </div>
         </div>
 
-        {test === 'ok' && (
-          <p className="inline-flex items-center gap-1.5 text-xs text-emerald-300"><CheckCircle2 className="h-3.5 w-3.5" /> Test sent — check your Slack channel.</p>
+        {test === 'ok' && testInfo && (
+          testInfo.willPostRealEvents ? (
+            <p className="inline-flex items-center gap-1.5 text-xs text-emerald-300">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Test sent — and real booking events will notify Slack too.
+            </p>
+          ) : (
+            <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-200 ring-1 ring-amber-500/30">
+              <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+              <span>
+                Test sent — but real bookings still won't notify because{' '}
+                {testInfo.blockers.includes('enabled') && <code className="rounded bg-amber-500/20 px-1">enabled</code>}
+                {testInfo.blockers.length > 1 && ' and '}
+                {testInfo.blockers.includes('notify_bookings') && <code className="rounded bg-amber-500/20 px-1">notify_bookings</code>}
+                {' '}{testInfo.blockers.length > 1 ? 'are' : 'is'} off. Use the warning above to fix.
+              </span>
+            </div>
+          )
         )}
         {test === 'fail' && (
           <p className="inline-flex items-center gap-1.5 text-xs text-rose-300"><AlertCircle className="h-3.5 w-3.5" /> Test failed — verify the webhook URL is correct.</p>

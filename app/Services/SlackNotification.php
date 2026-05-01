@@ -25,7 +25,18 @@ class SlackNotification
     public function notifyNewBooking(Booking $b): bool
     {
         $s = $this->settings;
-        if (!$s->enabled || !$s->webhook_url || !$s->notify_bookings) return false;
+        if (!$s->webhook_url) {
+            Log::info('Slack notify skipped — no webhook_url configured', ['booking_id' => $b->id]);
+            return false;
+        }
+        if (!$s->enabled) {
+            Log::info('Slack notify skipped — integration disabled (toggle Enable in admin)', ['booking_id' => $b->id]);
+            return false;
+        }
+        if (!$s->notify_bookings) {
+            Log::info('Slack notify skipped — notify_bookings is off', ['booking_id' => $b->id]);
+            return false;
+        }
 
         $payload = $this->buildBookingPayload($b);
         return $this->send($payload);
