@@ -15,6 +15,10 @@ import ContactPage from './pages/ContactPage.jsx';
 // Admin bundle is lazy — never paid for by public-site visitors.
 const AdminLayout = lazy(() => import('./admin/AdminLayout.jsx'));
 const AdminLogin = lazy(() => import('./admin/AdminLogin.jsx'));
+const AdminRegister = lazy(() => import('./admin/AdminRegister.jsx'));
+const AdminForgotPassword = lazy(() => import('./admin/AdminForgotPassword.jsx'));
+const AdminResetPassword = lazy(() => import('./admin/AdminResetPassword.jsx'));
+const AdminVerifyEmail = lazy(() => import('./admin/AdminVerifyEmail.jsx'));
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard.jsx'));
 const AdminBookings = lazy(() => import('./admin/AdminBookings.jsx'));
 const AdminRates = lazy(() => import('./admin/AdminRates.jsx'));
@@ -49,6 +53,10 @@ export default function App() {
       <Routes>
         {/* Admin tree — own layout, no public Nav/Footer */}
         <Route path="/admin/login" element={<Suspense fallback={null}><AdminLogin /></Suspense>} />
+        <Route path="/admin/register" element={<Suspense fallback={null}><AdminRegister /></Suspense>} />
+        <Route path="/admin/forgot-password" element={<Suspense fallback={null}><AdminForgotPassword /></Suspense>} />
+        <Route path="/admin/reset-password" element={<Suspense fallback={null}><AdminResetPassword /></Suspense>} />
+        <Route path="/admin/verify-email" element={<Suspense fallback={null}><AdminVerifyEmail /></Suspense>} />
         <Route path="/admin" element={<Suspense fallback={null}><AdminLayout /></Suspense>}>
           <Route index element={<Suspense fallback={null}><AdminDashboard /></Suspense>} />
           <Route path="bookings" element={<Suspense fallback={null}><AdminBookings /></Suspense>} />

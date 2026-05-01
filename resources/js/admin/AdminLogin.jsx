@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Lock, Mail, ArrowRight } from 'lucide-react';
 import { adminApi, adminToken } from './api.js';
 
@@ -52,6 +52,11 @@ export default function AdminLogin() {
             {busy ? 'Signing in…' : 'Sign in'}
             <ArrowRight className="h-4 w-4" />
           </button>
+
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <Link to="/admin/forgot-password" className="hover:text-packrs-teal">Forgot password?</Link>
+            <Link to="/admin/register" className="hover:text-packrs-teal">Create account</Link>
+          </div>
         </form>
 
         <p className="mt-6 text-center text-[11px] text-slate-500">

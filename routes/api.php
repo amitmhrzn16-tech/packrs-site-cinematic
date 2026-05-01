@@ -30,6 +30,11 @@ Route::prefix('v1')->group(function () {
 // ─────────────────── Admin auth ───────────────────
 Route::prefix('admin')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
+    Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
     Route::middleware(['auth:sanctum', 'is_admin'])->group(function () {
         Route::get('/me',     [AuthController::class, 'me']);
