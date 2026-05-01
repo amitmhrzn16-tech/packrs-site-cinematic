@@ -39,9 +39,14 @@ async function call(path, { method = 'GET', body, isForm = false } = {}) {
 
 export const adminApi = {
   // Auth
-  login:  (email, password) => call('/login', { method: 'POST', body: { email, password } }),
-  me:     () => call('/me'),
-  logout: () => call('/logout', { method: 'POST' }),
+  login:    (email, password) => call('/login', { method: 'POST', body: { email, password } }),
+  me:       () => call('/me'),
+  logout:   () => call('/logout', { method: 'POST' }),
+  register: (body) => call('/register', { method: 'POST', body }),
+  verifyEmail:        (token) => call('/verify-email', { method: 'POST', body: { token } }),
+  resendVerification: (email) => call('/resend-verification', { method: 'POST', body: { email } }),
+  forgotPassword:     (email) => call('/forgot-password', { method: 'POST', body: { email } }),
+  resetPassword:      (body) => call('/reset-password', { method: 'POST', body }),
 
   // Bookings
   bookings: {
