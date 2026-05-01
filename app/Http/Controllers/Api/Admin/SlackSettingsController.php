@@ -36,8 +36,21 @@ class SlackSettingsController extends Controller
 
     public function test(): JsonResponse
     {
+        $s = SlackSetting::current();
         $ok = SlackNotification::make()->sendTest();
-        return response()->json(['ok' => $ok]);
+
+        // Even when the test posts successfully, real bookings will be skipped
+        // unless the master toggle and per-event toggle are also on. Surface
+        // that explicitly so admins don't think "test works → all good".
+        $blockers = [];
+        if (!$s->enabled) $blockers[] = 'enabled';
+        if (!$s->notify_bookings) $blockers[] = 'notify_bookings';
+
+        return response()->json([
+            'ok' => $ok,
+            'will_post_real_events' => $ok && empty($blockers),
+            'blockers' => $blockers,
+        ]);
     }
 
     private function mask(SlackSetting $s): array
