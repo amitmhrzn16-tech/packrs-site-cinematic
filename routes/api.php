@@ -25,6 +25,7 @@ Route::prefix('v1')->group(function () {
     // Public content + SEO reads (admin edits surface here without auth)
     Route::get('/content/{page}', [PublicContentController::class, 'content']);
     Route::get('/seo/{page}',     [PublicContentController::class, 'seo']);
+    Route::get('/rates',          [PublicContentController::class, 'rates']);
 });
 
 // ─────────────────── Admin auth ───────────────────

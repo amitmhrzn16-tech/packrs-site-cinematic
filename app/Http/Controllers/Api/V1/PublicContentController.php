@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Rate;
 use App\Models\SeoSetting;
 use App\Models\SiteContent;
 use Illuminate\Http\JsonResponse;
@@ -34,5 +35,27 @@ class PublicContentController extends Controller
             'page' => $page,
             'seo' => $row,
         ])->header('Cache-Control', 'public, max-age=300');
+    }
+
+    /**
+     * Public list of active rates, used by the rate calculator on /rates and
+     * the booking form. Shape mirrors what the calculator already expects so
+     * it can replace the static /data/rates.json file directly.
+     */
+    public function rates(): JsonResponse
+    {
+        $rows = Rate::query()
+            ->where('active', true)
+            ->orderBy('to_location')
+            ->orderBy('service_type')
+            ->get([
+                'from_location', 'to_location', 'service_type',
+                'base_rate', 'base_kg_limit',
+                'additional_kg_mode', 'additional_kg_rate',
+                'areas_covered', 'contact_number', 'active',
+            ]);
+
+        return response()->json($rows)
+            ->header('Cache-Control', 'public, max-age=60');
     }
 }
