@@ -1,12 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Inbox, TrendingUp, CheckCircle2, Clock, BarChart3, ArrowUpRight } from 'lucide-react';
 import { adminApi } from './api.js';
 import AdminPageShell from './AdminPageShell.jsx';
+import { useAutoRefresh } from './useAutoRefresh.js';
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
-  useEffect(() => { adminApi.analytics.dashboard().then(setData).catch(() => {}); }, []);
+  const refresh = useCallback(() => {
+    adminApi.analytics.dashboard().then(setData).catch(() => {});
+  }, []);
+  useEffect(refresh, [refresh]);
+  useAutoRefresh(refresh, 30_000);
 
   const t = data?.totals ?? {};
   const series = data?.series_30d ?? [];

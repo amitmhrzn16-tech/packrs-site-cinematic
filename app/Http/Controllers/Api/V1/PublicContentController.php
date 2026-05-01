@@ -25,7 +25,7 @@ class PublicContentController extends Controller
             'page' => $page,
             // (object) cast keeps the empty case a JSON object {}, not [].
             'content' => (object) $map,
-        ])->header('Cache-Control', 'public, max-age=60'); // 1-min CDN-friendly cache
+        ])->header('Cache-Control', 'public, max-age=10'); // short TTL so admin edits land fast
     }
 
     public function seo(string $page): JsonResponse
@@ -34,7 +34,7 @@ class PublicContentController extends Controller
         return response()->json([
             'page' => $page,
             'seo' => $row,
-        ])->header('Cache-Control', 'public, max-age=300');
+        ])->header('Cache-Control', 'public, max-age=10');
     }
 
     /**
@@ -56,6 +56,6 @@ class PublicContentController extends Controller
             ]);
 
         return response()->json($rows)
-            ->header('Cache-Control', 'public, max-age=60');
+            ->header('Cache-Control', 'public, max-age=10');
     }
 }

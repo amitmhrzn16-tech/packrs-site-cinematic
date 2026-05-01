@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 const API_URL = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/$/, '');
 
 // Process-wide cache so two pages mounting the same content don't double-fetch.
+// Short TTL so admin edits surface on the public site within a few seconds.
 const cache = new Map(); // page -> { ts, content }
-const TTL = 60_000;
+const TTL = 10_000;
 
 async function fetchContent(page) {
   const now = Date.now();

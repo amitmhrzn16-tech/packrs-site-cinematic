@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Search, Trash2, Phone, MapPin } from 'lucide-react';
 import { adminApi } from './api.js';
 import AdminPageShell from './AdminPageShell.jsx';
+import { useAutoRefresh } from './useAutoRefresh.js';
 
 const STATUSES = ['new', 'contacted', 'converted', 'dropped'];
 const STATUS_COLORS = {
@@ -17,7 +18,7 @@ export default function AdminBookings() {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(true);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams();
     if (q) params.set('q', q);
@@ -29,9 +30,10 @@ export default function AdminBookings() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [q, status]);
 
   useEffect(() => { refresh(); /* eslint-disable-next-line */ }, []);
+  useAutoRefresh(refresh, 30_000);
 
   async function setRowStatus(id, next) {
     await adminApi.bookings.update(id, { status: next });

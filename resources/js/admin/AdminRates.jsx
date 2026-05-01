@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Upload, AlertCircle, FileDown, Trash2, Plus } from 'lucide-react';
 import { adminApi } from './api.js';
 import AdminPageShell from './AdminPageShell.jsx';
+import { useAutoRefresh } from './useAutoRefresh.js';
 
 const SERVICE_LABEL = {
   inside_valley: 'Inside Valley',
@@ -21,7 +22,7 @@ export default function AdminRates() {
   const [search, setSearch] = useState('');
   const [svc, setSvc] = useState('');
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -30,8 +31,9 @@ export default function AdminRates() {
       const r = await adminApi.rates.list(params.toString());
       setRows(r.data ?? []);
     } finally { setLoading(false); }
-  }
+  }, [search, svc]);
   useEffect(() => { refresh(); /* eslint-disable-next-line */ }, []);
+  useAutoRefresh(refresh, 60_000);
 
   async function remove(id) {
     if (!confirm('Delete this rate?')) return;
