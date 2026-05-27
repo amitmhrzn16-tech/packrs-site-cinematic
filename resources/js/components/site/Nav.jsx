@@ -42,7 +42,7 @@ export default function Nav() {
             <NavLink
               key={item.href}
               to={item.href}
-              end={item.href === '/'}
+              end={item.end || item.href === '/'}
               className={({ isActive }) =>
                 clsx(
                   'relative rounded-full px-4 py-2 text-sm transition-colors',
@@ -91,7 +91,7 @@ export default function Nav() {
               <NavLink
                 key={item.href}
                 to={item.href}
-                end={item.href === '/'}
+                end={item.end || item.href === '/'}
                 className={({ isActive }) =>
                   clsx(
                     'rounded-lg px-3 py-2.5 text-sm',
