@@ -9,6 +9,7 @@ import CoveragePage from './pages/CoveragePage.jsx';
 import AboutPage from './pages/AboutPage.jsx';
 import BookPage from './pages/BookPage.jsx';
 import RatesPage from './pages/RatesPage.jsx';
+import InternationalRatesPage from './pages/InternationalRatesPage.jsx';
 import TrackPage from './pages/TrackPage.jsx';
 import ContactPage from './pages/ContactPage.jsx';
 
@@ -78,6 +79,7 @@ export default function App() {
               <Route path="/about" element={<AboutPage />} />
               <Route path="/book" element={<BookPage />} />
               <Route path="/rates" element={<RatesPage />} />
+              <Route path="/rates/international" element={<InternationalRatesPage />} />
               <Route path="/track" element={<TrackPage />} />
               <Route path="/contact" element={<ContactPage />} />
             </Routes>
