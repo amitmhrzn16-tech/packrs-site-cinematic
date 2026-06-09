@@ -31,7 +31,7 @@ export default function InternationalRateCalculator() {
         <div>
           <h2 className="font-display text-2xl font-bold">International rate calculator</h2>
           <p className="text-sm text-white/60">
-            DHL Express · 7 zones · prices include {INTL_META.markupApplied} Packrs markup
+            DHL Express · 7 zones · parcel prices include {INTL_META.markupApplied} Packrs markup
           </p>
         </div>
       </div>
@@ -118,8 +118,8 @@ export default function InternationalRateCalculator() {
 
         {!result.error && (
           <p className="mt-3 text-xs text-white/60">
-            {result.mode === 'calculated'
-              ? `${service} · ${w} kg · Zone ${result.zone} · 25 kg base (NPR ${fmt(result.base)}) + ${result.extraKg} kg × NPR ${fmt(result.perKg)}/kg`
+            {result.mode === 'perkg'
+              ? `${service} · ${w} kg · Zone ${result.zone} · bulk rate NPR ${fmt(result.perKg)}/kg × ${w} kg`
               : `${service} · ${w} kg (billed at ${result.slab} kg slab) · Zone ${result.zone}`}
           </p>
         )}
