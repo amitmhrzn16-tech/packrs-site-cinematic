@@ -10,6 +10,8 @@ export const api = {
   stats: () => get('/stats'),
   track: (id) => get(`/track/${encodeURIComponent(id)}`),
   districts: () => get('/districts'),
+  // NRB daily rate, for USD-quoted international tariffs billed in NPR.
+  forex: (iso3 = 'USD') => get(`/forex/${encodeURIComponent(iso3)}`),
 };
 
 // Fallback when backend isn't running yet — keeps the demo standalone.
