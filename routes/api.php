@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ShipmentController;
 use App\Http\Controllers\Api\V1\BookingController;
+use App\Http\Controllers\Api\V1\ForexController;
 use App\Http\Controllers\Api\V1\PublicContentController;
 use App\Http\Controllers\Api\Admin\AuthController;
 use App\Http\Controllers\Api\Admin\BookingsController as AdminBookingsController;
@@ -26,6 +27,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/content/{page}', [PublicContentController::class, 'content']);
     Route::get('/seo/{page}',     [PublicContentController::class, 'seo']);
     Route::get('/rates',          [PublicContentController::class, 'rates']);
+
+    // NRB daily exchange rate — the Economy tariff is quoted in USD, billed in NPR.
+    Route::get('/forex/{iso3?}',  [ForexController::class, 'show']);
 });
 
 // ─────────────────── Admin auth ───────────────────

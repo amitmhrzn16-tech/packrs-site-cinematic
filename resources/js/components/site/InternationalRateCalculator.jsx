@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plane, MapPin } from 'lucide-react';
+import { api } from '../../lib/api.js';
 import {
   INTL_META, ZONES, DELIVERY_TERMS, DOC_MAX_KG, MAX_WEIGHT_KG, calcIntlRate,
 } from '../../lib/internationalRates.js';
@@ -30,6 +31,13 @@ function fmtUsd(n) {
   return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// 2026-07-25 → 25 Jul 2026. NRB publishes plain ISO dates.
+function fmtDate(iso) {
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 export default function InternationalRateCalculator({ level = 'express', onLevelChange }) {
   const economy = level === 'economy';
 
@@ -43,6 +51,20 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
 
   // Weight is shared: switching service level keeps what you already typed.
   const [weight, setWeight] = useState('2');
+
+  // NRB daily rate, so a USD quote can also be shown in what the customer pays.
+  // Fetched the first time Economy is opened; absence is not an error state —
+  // the quote still stands in USD if NRB is unreachable.
+  const [forex, setForex] = useState(null);
+
+  useEffect(() => {
+    if (!economy || forex) return;
+    let cancelled = false;
+    api.forex('USD')
+      .then((data) => { if (!cancelled) setForex(data); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [economy, forex]);
 
   const econRoutes = ECON_COUNTRIES[econCountry] ?? [];
 
@@ -62,6 +84,11 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
   const w = parseFloat(weight);
   const destination = economy ? econCountry : country;
   const maxKg = economy ? ECON_MAX_KG : MAX_WEIGHT_KG;
+
+  // NRB quotes per `unit` of currency. Selling rate: the bank sells the USD
+  // the shipment is billed in, so that is what the customer converts at.
+  const usdToNpr = forex ? forex.sell / (forex.unit || 1) : null;
+  const npr = usdToNpr && !result.error && economy ? result.rate * usdToNpr : null;
 
   return (
     <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 sm:p-10">
@@ -218,9 +245,16 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
           {result.error ? (
             <span className="text-sm text-amber-300 max-w-xs text-right">{result.error}</span>
           ) : (
-            <span className="font-display text-4xl font-bold text-packrs-teal tabular-nums drop-shadow-[0_0_18px_rgba(41,255,202,0.45)]">
-              {economy ? `USD ${fmtUsd(result.rate)}` : `NPR ${fmtNpr(result.rate)}`}
-            </span>
+            <div className="text-right">
+              <span className="font-display text-4xl font-bold text-packrs-teal tabular-nums drop-shadow-[0_0_18px_rgba(41,255,202,0.45)]">
+                {economy ? `USD ${fmtUsd(result.rate)}` : `NPR ${fmtNpr(result.rate)}`}
+              </span>
+              {economy && npr && (
+                <div className="mt-1 text-sm font-semibold text-white/70 tabular-nums">
+                  ≈ NPR {fmtNpr(npr)}
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -231,7 +265,10 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
                 {result.mode === 'perkg'
                   ? `${ECON_ROUTES[result.route].name} · billed ${result.billedKg} kg × $${fmtUsd(result.perKg)}/kg (${result.tier} tier)`
                   : `${ECON_ROUTES[result.route].name} · ${w} kg (billed at ${result.slab} kg slab)`}
-                {' · '}{ECON_META.billingNote}
+                {' · '}
+                {forex
+                  ? `Billed in NPR at the NRB ${forex.currency} selling rate of ${fmtUsd(forex.sell)}${forex.date ? `, ${fmtDate(forex.date)}` : ''}${forex.stale ? ' (last published)' : ''}`
+                  : ECON_META.billingNote}
               </>
             ) : (
               result.mode === 'perkg'
@@ -246,7 +283,10 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
         {economy ? (
           <>
             <InfoCell k="Chargeable weight" v="L×B×H ÷ 5000" />
-            <InfoCell k="Payment" v="NPR at NRB rate" />
+            <InfoCell
+              k={forex?.date ? `NRB rate · ${fmtDate(forex.date)}` : 'Payment'}
+              v={usdToNpr ? `NPR ${fmtUsd(usdToNpr)} / USD` : 'NPR at NRB rate'}
+            />
             <InfoCell k="Insurance" v="USD 1,000 max" positive />
           </>
         ) : (
