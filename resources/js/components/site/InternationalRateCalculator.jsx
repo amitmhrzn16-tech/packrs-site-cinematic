@@ -90,6 +90,12 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
   const usdToNpr = forex ? forex.sell / (forex.unit || 1) : null;
   const npr = usdToNpr && !result.error && economy ? result.rate * usdToNpr : null;
 
+  // Never present a hand-set or old rate as today's NRB figure.
+  const manualRate = forex?.source === 'manual';
+  const rateSource = manualRate
+    ? 'indicative rate'
+    : `NRB${forex?.date ? ` ${fmtDate(forex.date)}` : ''}${forex?.stale ? ' (last published)' : ''}`;
+
   return (
     <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 sm:p-10">
       <div className="flex items-start gap-3">
@@ -255,7 +261,7 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
                     NPR {fmtNpr(npr)}
                   </div>
                   <div className="mt-1 text-[11px] text-white/45 tabular-nums">
-                    1 USD = NPR {fmtUsd(usdToNpr)} · NRB{forex?.date ? ` ${fmtDate(forex.date)}` : ''}
+                    1 USD = NPR {fmtUsd(usdToNpr)} · {rateSource}
                   </div>
                 </>
               )}
@@ -272,7 +278,9 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
                   : `${ECON_ROUTES[result.route].name} · ${w} kg (billed at ${result.slab} kg slab)`}
                 {' · '}
                 {forex
-                  ? `Billed in NPR at the NRB selling rate${forex.stale ? ' (last published)' : ''}`
+                  ? (manualRate
+                    ? 'Billed in NPR — confirm the day\'s NRB rate when you book'
+                    : `Billed in NPR at the NRB selling rate${forex.stale ? ' (last published)' : ''}`)
                   : ECON_META.billingNote}
               </>
             ) : (
@@ -289,7 +297,7 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
           <>
             <InfoCell k="Chargeable weight" v="L×B×H ÷ 5000" />
             <InfoCell
-              k={forex?.date ? `NRB rate · ${fmtDate(forex.date)}` : 'Payment'}
+              k={manualRate ? 'Indicative rate' : forex?.date ? `NRB rate · ${fmtDate(forex.date)}` : 'Payment'}
               v={usdToNpr ? `NPR ${fmtUsd(usdToNpr)} / USD` : 'NPR at NRB rate'}
             />
             <InfoCell k="Insurance" v="USD 1,000 max" positive />
