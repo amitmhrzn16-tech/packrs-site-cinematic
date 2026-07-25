@@ -65,14 +65,19 @@ return [
     | recent selling rate and the page keeps showing NPR, labelled as a manual
     | rate rather than today's NRB figure. Leave empty to show USD only.
     |
-    | `verify` should stay true. Only set NRB_VERIFY_SSL=false if the server has
-    | no CA bundle and you accept that the rate is then unauthenticated.
+    | `ca_file` overrides the certificate chain used to verify NRB. It defaults
+    | to resources/certs/nrb-ca.pem, which the app ships because NRB does not
+    | send the intermediate certificate its leaf needs — see ForexController.
+    |
+    | `verify` should stay true. Setting NRB_VERIFY_SSL=false makes the rate
+    | unauthenticated; the shipped chain exists so you never need to.
     |
     */
 
     'nrb' => [
         'timeout'          => (int) env('NRB_TIMEOUT', 6),
         'verify'           => env('NRB_VERIFY_SSL', true),
+        'ca_file'          => env('NRB_CA_FILE'),
         'usd_npr_fallback' => env('NRB_USD_NPR_FALLBACK'),
     ],
 
