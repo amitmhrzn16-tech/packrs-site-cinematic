@@ -52,4 +52,19 @@ return [
         'timeout'        => (int) env('MARKETING_LEADS_TIMEOUT', 4),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Master Dashboard Snapshot
+    |--------------------------------------------------------------------------
+    |
+    | Bearer token for the read-only /api/dashboard/snapshot endpoint. The
+    | endpoint serves booking names and phone numbers, so it stays disabled
+    | (503) until a token is set — never open to the public.
+    |
+    */
+
+    'dashboard' => [
+        'token' => env('DASHBOARD_TOKEN'),
+    ],
+
 ];
