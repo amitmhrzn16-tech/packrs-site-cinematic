@@ -60,10 +60,16 @@ return [
     | The Economy international tariff is quoted in USD and billed in NPR, so
     | /rates/international reads NRB's daily rate.
     |
-    | `usd_npr_fallback` is the last resort when the server cannot reach NRB at
-    | all — some hosts block outbound requests from PHP entirely. Set it to a
-    | recent selling rate and the page keeps showing NPR, labelled as a manual
-    | rate rather than today's NRB figure. Leave empty to show USD only.
+    | `usd_npr_fallback` is the last resort when NRB cannot be reached at all —
+    | their API regularly accepts a connection and then never answers, and some
+    | hosts block outbound requests from PHP entirely. The page then shows NPR
+    | from this rate, labelled as indicative rather than as today's NRB figure.
+    |
+    | The default exists so a fresh deploy shows NPR before it has ever managed
+    | to reach NRB. It is deliberately a cold-start value, not a source of
+    | truth: the first successful fetch is cached forever and takes precedence
+    | from then on, so this number stops being consulted. Refresh it when it
+    | drifts far from the market, or set NRB_USD_NPR_FALLBACK to override it.
     |
     | `ca_file` overrides the certificate chain used to verify NRB. It defaults
     | to resources/certs/nrb-ca.pem, which the app ships because NRB does not
@@ -78,7 +84,8 @@ return [
         'timeout'          => (int) env('NRB_TIMEOUT', 6),
         'verify'           => env('NRB_VERIFY_SSL', true),
         'ca_file'          => env('NRB_CA_FILE'),
-        'usd_npr_fallback' => env('NRB_USD_NPR_FALLBACK'),
+        // NRB selling rate, 2026-07-25. See the note above before changing.
+        'usd_npr_fallback' => env('NRB_USD_NPR_FALLBACK', 154.81),
     ],
 
     /*

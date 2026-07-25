@@ -31,6 +31,17 @@ class ForexController extends Controller
     private const TTL_SECONDS = 21600;   // 6 hours
     private const LOOKBACK_DAYS = 10;    // covers holiday gaps in publication
 
+    /**
+     * How long to remember that NRB failed.
+     *
+     * NRB's API can accept the TCP connection and then never answer, so a
+     * failure costs the full timeout plus retries — around 18 seconds. Without
+     * this, every visitor who opens the Economy tab pays that wait and adds
+     * another hanging request to a host that is already struggling. Short
+     * enough that recovery is picked up within a couple of minutes.
+     */
+    private const FAILURE_TTL_SECONDS = 120;
+
     /** Set by fetch() so the response can explain a failure. */
     private ?string $reason = null;
 
@@ -49,9 +60,23 @@ class ForexController extends Controller
             return response()->json(['message' => 'Invalid currency code.'], 422);
         }
 
-        $fresh = Cache::remember("forex.{$iso3}", self::TTL_SECONDS, function () use ($iso3) {
-            return $this->fetch($iso3);
-        });
+        $cached = Cache::get("forex.{$iso3}");
+
+        if (is_array($cached) && isset($cached['failed'])) {
+            // A recent attempt already failed. Don't hang this request too.
+            $fresh = null;
+            $this->reason = $cached['reason'] ?? null;
+        } elseif (is_array($cached)) {
+            $fresh = $cached;
+        } else {
+            $fresh = $this->fetch($iso3);
+
+            Cache::put(
+                "forex.{$iso3}",
+                $fresh ?: ['failed' => true, 'reason' => $this->reason],
+                $fresh ? self::TTL_SECONDS : self::FAILURE_TTL_SECONDS
+            );
+        }
 
         if ($fresh) {
             // Keep a copy that never expires, to fall back on when NRB is down.
@@ -60,9 +85,6 @@ class ForexController extends Controller
             return response()->json($fresh)
                 ->header('Cache-Control', 'public, max-age=3600');
         }
-
-        // Nothing fresh — don't cache the failure, so the next hit retries.
-        Cache::forget("forex.{$iso3}");
 
         $stale = Cache::get("forex.{$iso3}.last");
 
