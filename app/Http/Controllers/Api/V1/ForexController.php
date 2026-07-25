@@ -16,11 +16,14 @@ use Illuminate\Support\Facades\Log;
  * customer what they will actually pay. NRB publishes once a day (and skips
  * public holidays), hence the 6-hour cache and the look-back window.
  *
- * Some hosts block outbound HTTP from PHP, or ship without a CA bundle, so a
- * failure here is a deployment fact rather than a bug. Three things follow
- * from that: the reason is reported in the response so it can be diagnosed
- * without server logs, the last good rate is kept forever as a fallback, and
+ * Some hosts block outbound HTTP from PHP, so a failure here can be a
+ * deployment fact rather than a bug. Three things follow from that: the reason
+ * is reported in the response so it can be diagnosed without server logs, the
+ * last good rate is kept forever as a fallback, and
  * `services.nrb.usd_npr_fallback` can supply a manual rate as a last resort.
+ *
+ * NRB's incomplete certificate chain is the exception — see verifyOption().
+ * That one looked like a host misconfiguration but is fixed in the app.
  */
 class ForexController extends Controller
 {
@@ -109,6 +112,41 @@ class ForexController extends Controller
     }
 
     /**
+     * What to hand Guzzle for TLS verification.
+     *
+     * NRB serves its leaf certificate without the GeoTrust intermediate above
+     * it, so OpenSSL cannot build a path to any root and the request dies with
+     * `unable to get local issuer certificate` — on every host, however well
+     * its CA store is set up. Browsers and the curl CLI paper over this by
+     * fetching the missing issuer over AIA; PHP does not.
+     *
+     * So point cURL at the chain we ship instead. It carries the intermediate
+     * NRB omits plus the one root it chains to, which is why the app's own
+     * bundle is used here rather than the system store.
+     *
+     * Returns false only when NRB_VERIFY_SSL is explicitly disabled, which
+     * leaves the rate unauthenticated — the escape hatch of last resort.
+     */
+    private function verifyOption(): string|bool
+    {
+        $verify = filter_var(
+            config('services.nrb.verify', true),
+            FILTER_VALIDATE_BOOL
+        );
+
+        if (! $verify) {
+            return false;
+        }
+
+        $caFile = config('services.nrb.ca_file') ?: resource_path('certs/nrb-ca.pem');
+
+        // If the shipped chain ever goes missing, fall back to the host's own
+        // store: it will most likely fail, but as a reported 503 rather than
+        // an unverified rate.
+        return is_file($caFile) ? $caFile : true;
+    }
+
+    /**
      * Pull the currency's latest entry from NRB. Returns null on any failure —
      * a missing exchange rate must never take the rate page down with it — and
      * records why in $this->reason.
@@ -118,10 +156,7 @@ class ForexController extends Controller
         try {
             $res = Http::timeout((int) config('services.nrb.timeout', 6))
                 ->retry(2, 250, throw: false)
-                ->withOptions(['verify' => filter_var(
-                    config('services.nrb.verify', true),
-                    FILTER_VALIDATE_BOOL
-                )])
+                ->withOptions(['verify' => $this->verifyOption()])
                 // NRB sits behind a WAF that is friendlier to a named client
                 // than to the default Guzzle agent.
                 ->withHeaders([
@@ -187,6 +222,9 @@ class ForexController extends Controller
         $m = strtolower($message);
 
         return match (true) {
+            // Distinct from a missing CA store, and fixed in a different place:
+            // this one means the chain we ship no longer matches what NRB sends.
+            str_contains($m, 'local issuer') => 'tls_chain_incomplete',
             str_contains($m, 'ssl') || str_contains($m, 'certificate') => 'tls_no_ca_bundle',
             str_contains($m, 'could not resolve') || str_contains($m, 'resolve host') => 'dns_failure',
             str_contains($m, 'timed out') || str_contains($m, 'timeout') => 'timeout',
