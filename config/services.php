@@ -54,6 +54,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Nepal Rastra Bank forex
+    |--------------------------------------------------------------------------
+    |
+    | The Economy international tariff is quoted in USD and billed in NPR, so
+    | /rates/international reads NRB's daily rate.
+    |
+    | `usd_npr_fallback` is the last resort when the server cannot reach NRB at
+    | all — some hosts block outbound requests from PHP entirely. Set it to a
+    | recent selling rate and the page keeps showing NPR, labelled as a manual
+    | rate rather than today's NRB figure. Leave empty to show USD only.
+    |
+    | `verify` should stay true. Only set NRB_VERIFY_SSL=false if the server has
+    | no CA bundle and you accept that the rate is then unauthenticated.
+    |
+    */
+
+    'nrb' => [
+        'timeout'          => (int) env('NRB_TIMEOUT', 6),
+        'verify'           => env('NRB_VERIFY_SSL', true),
+        'usd_npr_fallback' => env('NRB_USD_NPR_FALLBACK'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Master Dashboard Snapshot
     |--------------------------------------------------------------------------
     |

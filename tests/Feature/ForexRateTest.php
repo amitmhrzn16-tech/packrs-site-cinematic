@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class ForexRateTest extends TestCase
@@ -88,7 +89,7 @@ class ForexRateTest extends TestCase
         // and the first registered wins, so the outage would never be seen.
         Http::fakeSequence('www.nrb.org.np/*')
             ->push($this->nrbPayload())
-            ->pushStatus(500);
+            ->whenEmpty(Http::response('', 500));
 
         $this->getJson('/api/v1/forex/USD')->assertOk();
 
@@ -107,12 +108,87 @@ class ForexRateTest extends TestCase
 
         $this->getJson('/api/v1/forex/USD')
             ->assertStatus(503)
-            ->assertJsonPath('message', 'Exchange rate is temporarily unavailable.');
+            ->assertJsonPath('message', 'Exchange rate is temporarily unavailable.')
+            ->assertJsonPath('reason', 'http_500');
+    }
+
+    /**
+     * Each connection failure gets its own run: stubs registered for the same
+     * URL pattern merge, and the first one registered wins.
+     */
+    #[DataProvider('connectionFailures')]
+    public function test_it_names_the_failure_so_the_cause_can_be_told_apart(string $curlMessage, string $expected): void
+    {
+        Http::fake(fn () => throw new \Illuminate\Http\Client\ConnectionException($curlMessage));
+
+        $this->getJson('/api/v1/forex/USD')
+            ->assertStatus(503)
+            ->assertJsonPath('reason', $expected);
+    }
+
+    public static function connectionFailures(): array
+    {
+        return [
+            'no CA bundle' => [
+                'cURL error 60: SSL certificate problem: unable to get local issuer certificate',
+                'tls_no_ca_bundle',
+            ],
+            'outbound blocked' => [
+                'cURL error 7: Failed to connect to www.nrb.org.np port 443: Connection timed out',
+                'timeout',
+            ],
+            'no DNS' => [
+                'cURL error 6: Could not resolve host: www.nrb.org.np',
+                'dns_failure',
+            ],
+            'refused' => [
+                'cURL error 7: Connection refused',
+                'connection_refused',
+            ],
+        ];
+    }
+
+    public function test_a_configured_fallback_keeps_npr_on_the_page_when_nrb_is_unreachable(): void
+    {
+        config(['services.nrb.usd_npr_fallback' => 152.5]);
+        Http::fake(['www.nrb.org.np/*' => Http::response('', 500)]);
+
+        $this->getJson('/api/v1/forex/USD')
+            ->assertOk()
+            ->assertJsonPath('sell', 152.5)
+            // Labelled, so the UI never passes it off as today's NRB figure.
+            ->assertJsonPath('source', 'manual')
+            ->assertJsonPath('stale', true)
+            ->assertJsonPath('date', null);
+    }
+
+    public function test_a_live_rate_always_beats_the_configured_fallback(): void
+    {
+        config(['services.nrb.usd_npr_fallback' => 152.5]);
+        Http::fake(['www.nrb.org.np/*' => Http::response($this->nrbPayload())]);
+
+        $this->getJson('/api/v1/forex/USD')
+            ->assertOk()
+            ->assertJsonPath('sell', 154.81)
+            ->assertJsonPath('source', 'Nepal Rastra Bank');
+    }
+
+    public function test_a_nonsense_fallback_is_ignored_rather_than_priced_in(): void
+    {
+        Http::fake(['www.nrb.org.np/*' => Http::response('', 500)]);
+
+        foreach (['', 'abc', 0, -5] as $bad) {
+            Cache::flush();
+            config(['services.nrb.usd_npr_fallback' => $bad]);
+            $this->getJson('/api/v1/forex/USD')->assertStatus(503);
+        }
     }
 
     public function test_a_failed_fetch_is_not_cached(): void
     {
+        // Two 500s, because the controller retries once before giving up.
         Http::fakeSequence('www.nrb.org.np/*')
+            ->pushStatus(500)
             ->pushStatus(500)
             ->push($this->nrbPayload());
 
