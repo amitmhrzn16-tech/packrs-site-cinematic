@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\DashboardSnapshotController;
 use App\Http\Controllers\Api\ShipmentController;
 use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\ForexController;
@@ -14,6 +15,9 @@ use App\Http\Controllers\Api\Admin\SlackSettingsController;
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\UsersController;
 use App\Http\Controllers\Api\Admin\MediaController;
+
+// Master dashboard snapshot (bearer-token protected via DASHBOARD_TOKEN env)
+Route::get('/dashboard/snapshot', DashboardSnapshotController::class);
 
 // ─────────────────── Public v1 API ───────────────────
 Route::prefix('v1')->group(function () {
