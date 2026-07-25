@@ -250,9 +250,14 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
                 {economy ? `USD ${fmtUsd(result.rate)}` : `NPR ${fmtNpr(result.rate)}`}
               </span>
               {economy && npr && (
-                <div className="mt-1 text-sm font-semibold text-white/70 tabular-nums">
-                  ≈ NPR {fmtNpr(npr)}
-                </div>
+                <>
+                  <div className="mt-1 font-display text-2xl font-bold text-white tabular-nums">
+                    NPR {fmtNpr(npr)}
+                  </div>
+                  <div className="mt-1 text-[11px] text-white/45 tabular-nums">
+                    1 USD = NPR {fmtUsd(usdToNpr)} · NRB{forex?.date ? ` ${fmtDate(forex.date)}` : ''}
+                  </div>
+                </>
               )}
             </div>
           )}
@@ -267,7 +272,7 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
                   : `${ECON_ROUTES[result.route].name} · ${w} kg (billed at ${result.slab} kg slab)`}
                 {' · '}
                 {forex
-                  ? `Billed in NPR at the NRB ${forex.currency} selling rate of ${fmtUsd(forex.sell)}${forex.date ? `, ${fmtDate(forex.date)}` : ''}${forex.stale ? ' (last published)' : ''}`
+                  ? `Billed in NPR at the NRB selling rate${forex.stale ? ' (last published)' : ''}`
                   : ECON_META.billingNote}
               </>
             ) : (
