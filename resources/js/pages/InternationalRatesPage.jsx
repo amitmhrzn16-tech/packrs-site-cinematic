@@ -2,7 +2,9 @@ import { useState } from 'react';
 import PageHeader from '../components/site/PageHeader.jsx';
 import InternationalRateCalculator from '../components/site/InternationalRateCalculator.jsx';
 import DynamicSeo from '../components/site/DynamicSeo.jsx';
-import { DELIVERY_TERMS } from '../lib/internationalRates.js';
+import {
+  DELIVERY_TERMS, INTL_META, DOC_MAX_KG, PARCEL_SLAB_MAX_KG, MAX_WEIGHT_KG,
+} from '../lib/internationalRates.js';
 import { ECON_META, ECON_TERMS } from '../lib/economyRates.js';
 
 const T = DELIVERY_TERMS;
@@ -12,14 +14,14 @@ const npr = (n) => `NPR ${n.toLocaleString('en-IN')}`;
 
 // Express (DHL) delivery terms & surcharges, surfaced from internationalRates.js.
 const EXPRESS_TERMS = [
-  { highlight: true, title: 'Free packing & customs in Nepal', desc: 'No charge for packing materials or customs clearance in Nepal — included with every shipment.' },
+  { highlight: true, title: 'Free packing', desc: `No charge for packing materials. Rates effective ${INTL_META.effectiveFrom}, quoted in NPR.` },
   { title: `Delivery time: ${T.deliveryTime}`, desc: 'Standard delivery is 3–5 working days. Check dct.dhl.com for the accurate day.', link: 'https://www.dct.dhl.com' },
-  { title: 'Remote area fee', desc: `${npr(T.remoteAreaFeeNpr)} extra for delivery to out-of-city areas.` },
-  { title: 'Wooden box / tube packing', desc: `${npr(T.woodenBoxOrTubeNpr)} extra if your shipment requires a wooden box or tube.` },
-  { title: 'Oversized packets (≥ 100 cm)', desc: `${npr(T.oversizePacket100cmNpr)} extra for any individual packet measuring 100 cm or more on any side.` },
-  { title: 'Heavy packets 24.5–79.5 kg', desc: `${npr(T.heavy24_5to79_5Npr)} extra per packet weighing between 24.5 kg and 79.5 kg.` },
-  { title: 'Heavy packets ≥ 79.5 kg', desc: `${npr(T.heavyAbove79_5Npr)} extra per packet weighing 79.5 kg or more.` },
-  { title: 'Address change & war zones', desc: `Address change after departure: ${npr(T.addressChangeNpr)}. War-affected regions: ${T.warZoneNote.toLowerCase()}` },
+  { title: 'Documents & parcels', desc: `Documents up to ${DOC_MAX_KG} kg; parcels priced in 0.5 kg slabs to ${PARCEL_SLAB_MAX_KG} kg, then per kilogram to ${MAX_WEIGHT_KG} kg. Heavier shipments are quoted on request.` },
+  { title: 'Document charges included', desc: 'Document rates are inclusive of the Emergency Charge, TIA charge and VAT.' },
+  { title: 'Customs clearance', desc: `${npr(T.customsPerBoxAbove10kg)} per box for shipments above 10 kg.` },
+  { title: 'Remote area fee', desc: `${npr(T.remoteArea)} extra for delivery to out-of-city areas.` },
+  { title: 'Bad address', desc: `${npr(T.badAddressPerShipment)} per shipment if the delivery address is wrong or incomplete.` },
+  { title: 'Overweight pieces', desc: `${npr(T.overweightAbove70kg)} for any single piece above 70 kg (150 lb).` },
 ];
 
 // Economy delivery terms & surcharges, surfaced from economyRates.js. These are
@@ -45,7 +47,7 @@ export default function InternationalRatesPage() {
       <DynamicSeo
         page="international-rates"
         title="International Shipping Rates — Packrs Courier"
-        description="Express and Economy international shipping rates from Nepal. DHL Express across 7 zones up to 300 kg, or the Economy network across 22 routes to Europe, the Americas, Asia and Oceania."
+        description="Express and Economy international shipping rates from Nepal. DHL Express across 7 zones up to 30 kg, or the Economy network across 22 routes to Europe, the Americas, Asia and Oceania."
       />
       <PageHeader
         eyebrow="International Shipping · Express & Economy"

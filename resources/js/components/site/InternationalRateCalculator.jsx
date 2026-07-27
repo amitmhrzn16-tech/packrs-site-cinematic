@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Plane, MapPin } from 'lucide-react';
 import { api } from '../../lib/api.js';
 import {
-  INTL_META, ZONES, DELIVERY_TERMS, DOC_MAX_KG, MAX_WEIGHT_KG, calcIntlRate,
+  INTL_META, ZONES, DELIVERY_TERMS, SURCHARGES, DOC_MAX_KG, MAX_WEIGHT_KG, calcIntlRate,
 } from '../../lib/internationalRates.js';
 import {
   ECON_META, ECON_ROUTES, ECON_COUNTRY_GROUPS, ECON_COUNTRIES,
@@ -20,7 +20,7 @@ export const LEVELS = [
 
 const SERVICES = [
   { value: 'Document', label: 'Document', hint: '≤ 2 kg' },
-  { value: 'Parcel', label: 'Parcel', hint: '≤ 300 kg' },
+  { value: 'Parcel', label: 'Parcel', hint: '≤ 30 kg' },
 ];
 
 function fmtNpr(n) {
@@ -107,7 +107,7 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
           <p className="text-sm text-white/60">
             {economy
               ? `Economy network · 22 routes · rates in USD, effective ${ECON_META.effectiveFrom}`
-              : `DHL Express · 7 zones · parcel prices include ${INTL_META.markupApplied} Packrs markup`}
+              : `DHL Express · 7 zones · rates effective ${INTL_META.effectiveFrom}`}
           </p>
         </div>
       </div>
@@ -285,7 +285,7 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
               </>
             ) : (
               result.mode === 'perkg'
-                ? `${service} · ${w} kg · Zone ${result.zone} · bulk rate NPR ${fmtNpr(result.perKg)}/kg × ${w} kg`
+                ? `${service} · billed ${result.billedKg} kg × NPR ${fmtNpr(result.perKg)}/kg (${result.tier}) · Zone ${result.zone}`
                 : `${service} · ${w} kg (billed at ${result.slab} kg slab) · Zone ${result.zone}`
             )}
           </p>
@@ -305,8 +305,8 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
         ) : (
           <>
             <InfoCell k="Delivery time" v={DELIVERY_TERMS.deliveryTime} />
-            <InfoCell k="Customs in Nepal" v="Free" positive />
             <InfoCell k="Packing" v="Free" positive />
+            <InfoCell k="Customs above 10 kg" v={`NPR ${fmtNpr(SURCHARGES.customsPerBoxAbove10kg)}/box`} />
           </>
         )}
       </div>
