@@ -300,7 +300,7 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
               k={manualRate ? 'Indicative rate' : forex?.date ? `NRB rate · ${fmtDate(forex.date)}` : 'Payment'}
               v={usdToNpr ? `NPR ${fmtUsd(usdToNpr)} / USD` : 'NPR at NRB rate'}
             />
-            <InfoCell k="Insurance" v="USD 1,000 max" positive />
+            <InfoCell k="Insurance" v="USD 100 max" positive />
           </>
         ) : (
           <>

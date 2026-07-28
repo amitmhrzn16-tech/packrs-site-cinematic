@@ -31,7 +31,7 @@ const ECONOMY_TERMS = [
   { title: 'Remote area charges', desc: E.remoteArea },
   { title: 'Weight limits per box', desc: E.weightLimits },
   { title: 'Food & restricted items', desc: `Ghee, pickle, honey and oil: ${npr(E.bottledGoodsPerBottleNpr)} per bottle to Korea and Japan. Food misdeclared to Europe: EUR ${E.misdeclaredFoodEuropeEur} charge. No medicine or seeds on the 1000 Japan route.` },
-  { title: 'Liability & insurance', desc: `Lost parcels: USD ${E.lostParcelCompensationUsd} plus courier charges, except where the fault is the shipper's or consignee's. Insurance up to USD ${E.insuranceMaxUsd.toLocaleString('en-US')} per consignment. No compensation for customs delays, flight cancellations, weather, or goods destroyed by customs for missing documents.` },
+  { title: 'Liability & insurance', desc: `Lost parcels: USD ${E.lostParcelCompensationUsd} per consignment, except where the fault is the shipper's or consignee's. Insurance up to USD ${E.insuranceMaxUsd.toLocaleString('en-US')} per consignment. No compensation for customs delays, flight cancellations, weather, or goods destroyed by customs for missing documents.` },
   { title: 'Islands & late payment', desc: `New Zealand islands: USD ${E.nzIslandUsd} or USD ${E.nzIslandPerKgUsd}/kg, whichever is higher. Japan islands (Okinawa, Hokkaido, Miyazaki): USD ${E.japanIslandDocUsd} per document or USD ${E.japanIslandBoxUsd} per box. Payment later than ${E.latePaymentAfterDays} days raises the rate by ${E.latePaymentIncreasePct}%.` },
 ];
 

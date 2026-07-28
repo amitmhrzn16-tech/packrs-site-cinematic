@@ -215,12 +215,12 @@ export const ECON_COUNTRIES = Object.assign({}, ...ECON_COUNTRY_GROUPS.map((g) =
 // carry no Packrs margin, so they are quoted exactly as the carrier bills them.
 export const ECON_TERMS = {
   volumetricDivisor: 5000,
-  customsPerBoxOver10kgNpr: 700,
-  customsPerKgOver0_5kgNpr: 7,
-  nepalPostPerConsignmentNpr: 600,
-  nepalPostPerBoxNpr: 200,
+  customsPerBoxOver10kgNpr: 15000,
+  customsPerKgOver0_5kgNpr: 97,
+  nepalPostPerConsignmentNpr: 700,
+  nepalPostPerBoxNpr: 300,
   lostParcelCompensationUsd: 100,
-  insuranceMaxUsd: 1000,
+  insuranceMaxUsd: 100,
   bottledGoodsPerBottleNpr: 1000,
   misdeclaredFoodEuropeEur: 300,
   latePaymentIncreasePct: 10,
