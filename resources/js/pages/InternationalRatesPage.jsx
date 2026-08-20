@@ -5,7 +5,7 @@ import DynamicSeo from '../components/site/DynamicSeo.jsx';
 import {
   DELIVERY_TERMS, INTL_META, DOC_MAX_KG, PARCEL_SLAB_MAX_KG, MAX_WEIGHT_KG,
 } from '../lib/internationalRates.js';
-import { ECON_META, ECON_TERMS } from '../lib/economyRates.js';
+import { ECON_META, ECON_TERMS, ECON_ZONES, ECON_ROUTES, ECON_SLAB_MAX_KG, ECON_PER_KG_MIN_KG } from '../lib/economyRates.js';
 
 const T = DELIVERY_TERMS;
 const E = ECON_TERMS;
@@ -24,17 +24,20 @@ const EXPRESS_TERMS = [
   { title: 'Overweight pieces', desc: `${npr(T.overweightAbove70kg)} for any single piece above 70 kg (150 lb).` },
 ];
 
-// Economy delivery terms & surcharges, surfaced from economyRates.js. These are
-// the carrier's pass-through charges — no Packrs margin is added to them.
+// Economy terms & surcharges, surfaced from economyRates.js. Everything below
+// is the carrier's own charge — no Packrs margin is added to a surcharge, and
+// the ones the card quotes in EUR or USD are billed in that currency.
 const ECONOMY_TERMS = [
-  { highlight: true, title: 'Rates in USD, billed in NPR', desc: `Every Economy rate is quoted in USD and converted at the NRB daily exchange rate. Rate card effective ${ECON_META.effectiveFrom}.` },
+  { highlight: true, title: 'Quoted and billed in NPR', desc: `Every Economy rate is a selling rate in rupees: supplier cost plus ${ECON_META.markupApplied}. ${ECON_META.rounding}. No exchange-rate step between the quote and the invoice. Card effective ${ECON_META.effectiveFrom}, valid ${E.validity.toLowerCase()}.` },
+  { title: 'How the weight is priced', desc: `Up to ${ECON_SLAB_MAX_KG} kg a shipment is billed at a flat price for the next 0.5 kg slab. From ${ECON_PER_KG_MIN_KG} kg it is billed per kilogram, on the weight rounded up to the next whole kilogram.` },
   { title: 'Volumetric weight', desc: `Chargeable weight is the higher of actual weight and (L × B × H in cm) ÷ ${E.volumetricDivisor.toLocaleString('en-IN')}.` },
-  { title: 'Nepal customs handling', desc: `${npr(E.customsPerBoxOver10kgNpr)} per box over 10 kg; ${npr(E.customsPerKgOver0_5kgNpr)}/kg for items over 0.5 kg. Nepal Post shipments: ${npr(E.nepalPostPerConsignmentNpr)} per consignment plus ${npr(E.nepalPostPerBoxNpr)} per box.` },
-  { title: 'Remote area charges', desc: E.remoteArea },
-  { title: 'Weight limits per box', desc: E.weightLimits },
-  { title: 'Food & restricted items', desc: `Ghee, pickle, honey and oil: ${npr(E.bottledGoodsPerBottleNpr)} per bottle to Korea and Japan. Food misdeclared to Europe: EUR ${E.misdeclaredFoodEuropeEur} charge. No medicine or seeds on the 1000 Japan route.` },
-  { title: 'Liability & insurance', desc: `Lost parcels: USD ${E.lostParcelCompensationUsd} plus courier charges, except where the fault is the shipper's or consignee's. Insurance up to USD ${E.insuranceMaxUsd.toLocaleString('en-US')} per consignment. No compensation for customs delays, flight cancellations, weather, or goods destroyed by customs for missing documents.` },
-  { title: 'Islands & late payment', desc: `New Zealand islands: USD ${E.nzIslandUsd} or USD ${E.nzIslandPerKgUsd}/kg, whichever is higher. Japan islands (Okinawa, Hokkaido, Miyazaki): USD ${E.japanIslandDocUsd} per document or USD ${E.japanIslandBoxUsd} per box. Payment later than ${E.latePaymentAfterDays} days raises the rate by ${E.latePaymentIncreasePct}%.` },
+  { title: 'Nepal customs clearance & TIA', desc: `${npr(E.nepalCustomsPerBoxNpr)} per box for customs clearance in Nepal, plus a TIA charge of ${npr(E.tiaPerKgNpr)} per kg. Both apply to every shipment and are charged on top of the rate.` },
+  { title: 'Remote area charge', desc: `EUR ${E.remoteAreaEur} on the ${E.remoteAreaApplies} when the address falls outside the carrier's standard delivery area. Call us before you book if the destination looks rural — we confirm it with the carrier first.` },
+  { title: 'Bad address', desc: `EUR ${E.badAddressEur} if the delivery address is wrong or incomplete. Wooden box, where one is required: EUR ${E.woodenBoxEur} extra.` },
+  { title: 'Weight limit per box', desc: `${E.weightLimitEuropeKg} kg to the UK and all of Europe; ${E.weightLimitUsCanadaKg} kg to the USA and Canada; ${E.weightLimitAustraliaKg} kg to Australia. Heavier consignments are split across boxes.` },
+  { title: 'Restricted & surcharged goods', desc: `Dry meat to ${E.dryMeatApplies}: ${npr(E.dryMeatPerKgNpr)} per kg extra. Shipments routed via Frankfurt, ${E.fraSurchargeApplies}: USD ${E.fraSurchargeUsd} extra per shipment.` },
+  { title: 'Duty paid or duty unpaid to North America', desc: `${ECON_ROUTES.USCA.name} leaves duty and tax for the consignee to settle on arrival. ${ECON_ROUTES.USCADDP.name} prepays both, and is priced from ${ECON_PER_KG_MIN_KG} kg only.` },
+  { title: 'EU zones', desc: `Zone A: ${ECON_ZONES['EU Zone A'].join(', ')}. Zone B: ${ECON_ZONES['EU Zone B'].join(', ')}.` },
 ];
 
 export default function InternationalRatesPage() {
@@ -47,7 +50,7 @@ export default function InternationalRatesPage() {
       <DynamicSeo
         page="international-rates"
         title="International Shipping Rates — Packrs Courier"
-        description="Express and Economy international shipping rates from Nepal. DHL Express across 7 zones up to 30 kg, or the Economy network across 22 routes to Europe, the Americas, Asia and Oceania."
+        description="Express and Economy international shipping rates from Nepal. DHL Express across 7 zones up to 30 kg, or the Economy network across 16 routes to Europe, the Gulf, Asia, North America and Oceania — all quoted in NPR."
       />
       <PageHeader
         eyebrow="International Shipping · Express & Economy"
