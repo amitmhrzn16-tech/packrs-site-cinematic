@@ -1,242 +1,241 @@
 // Economy (air-consolidator) international rate reference for Packrs Courier.
 //
 // Companion to `internationalRates.js` (DHL Express). Same page, two service
-// levels: Express is fast and priced in NPR; Economy is the cheaper
-// consolidator network, published in USD and billed in NPR at the NRB daily
-// rate. Source: supplier rate chart effective 05.04.2026, 20%-inclusive
-// (base tariff + 20% Packrs margin already applied to every figure below).
+// levels: Express is DHL, Economy is the cheaper consolidator network. As of
+// the August 2026 card BOTH are priced in NPR — Economy no longer quotes in
+// USD, so there is no exchange-rate step between the quote and the invoice.
+//
+// Source: consolidator rate list effective 01/08/2026 (Eagle Logistic Pvt.
+// Ltd., Kathmandu). Every figure below is a SELLING rate:
+//
+//   * per-shipment slabs (0.5 – 9.5 kg): supplier cost + 20% margin
+//   * per-kg bands (10 kg and above):    supplier cost + 10% margin
+//
+// both rounded UP to the nearest NPR 10. Supplier cost rates are deliberately
+// not in this file. Surcharges are the supplier's own and are passed through
+// at cost — no margin is added to them.
 //
 // Like the DHL module this is published-tariff reference data, NOT the
 // admin-editable domestic `rates` table.
+//
+// Three things in the source card that look like typos here but are not:
+//
+//  1. Dubai gets CHEAPER at 5 kg (4,390) than at 4.5 kg (5,370), and again at
+//     6.5 kg (5,360) after 6 kg (5,400). The cost sheet has the same kink, so
+//     it is reproduced rather than smoothed.
+//  2. Qatar 5.5 kg (7,710) is NPR 10 below Qatar 5 kg (7,720) — same story.
+//  3. The per-kg bands skip 60 – 70.5 kg. A shipment landing in that gap is
+//     billed at the 70.5 – 99.5 kg rate, which is identical to the 50 – 60 kg
+//     rate on every lane except Oman.
+//
+// The remote-area surcharge is printed as EUR 600 — see the note on it below.
 
 export const ECON_META = {
   service: 'Packrs Economy · Export from Nepal',
-  currency: 'USD',
-  effectiveFrom: '05.04.2026',
-  markupApplied: '20%',
-  billingNote: 'Billed in NPR at the NRB daily exchange rate.',
+  currency: 'NPR',
+  effectiveFrom: '1 August 2026',
+  markupApplied: '20% per shipment · 10% per kg',
+  rounding: 'Rounded up to the nearest NPR 10',
 };
 
 // Weight slabs, in kg. Below 10 kg a shipment is billed at the next slab up.
 export const ECON_SLABS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5];
 
-// From 10 kg the chart switches to per-kg pricing. Tiers align with ECON_ROUTES.perKg.
+// From 10 kg the card switches to per-kg pricing. Tiers align 1:1 with
+// ECON_ROUTES.perKg. `max` is the highest billed weight the band covers; the
+// card's printed 60 – 70.5 kg gap is closed by letting the 99.5 band absorb it.
 export const ECON_TIERS = [
-  { label: '10 - 20 kg', max: 20 },
-  { label: '21 - 30 kg', max: 30 },
-  { label: '31 - 45 kg', max: 45 },
-  { label: '46 - 70 kg', max: 70 },
-  { label: '71 - 99 kg', max: 99 },
+  { label: '10 – 19 kg', max: 19 },
+  { label: '20 – 30 kg', max: 30 },
+  { label: '31 – 40 kg', max: 40 },
+  { label: '41 – 50 kg', max: 50 },
+  { label: '51 – 60 kg', max: 60 },
+  { label: '61 – 99.5 kg', max: 99.5 },
   { label: '100 kg +', max: Infinity },
 ];
 
 export const ECON_MAX_KG = 500;
 export const ECON_SLAB_MAX_KG = 9.5;
+export const ECON_PER_KG_MIN_KG = 10;
 
-// 22 routes. `rates` maps 1:1 onto ECON_SLABS, `perKg` onto ECON_TIERS. USD.
+// 16 lanes. `rates` maps 1:1 onto ECON_SLABS, `perKg` onto ECON_TIERS. NPR.
+// `rates: null` means the lane has no per-shipment pricing at all and is only
+// quotable from 10 kg — that is how the card prints USA / Canada (DDP).
 export const ECON_ROUTES = {
+  USCA: {
+    name: 'USA / Canada (DAP express)',
+    covers: 'United States, Canada — duty payable on arrival',
+    rates: [6240, 7440, 8160, 8880, 9600, 10320, 11040, 11760, 12480, 13200, 13200, 13800, 14400, 15000, 15600, 16200, 16800, 17400, 18000],
+    perKg: [1380, 1140, 1140, 1140, 1140, 1140, 1140],
+  },
+  USCADDP: {
+    name: 'USA / Canada (DDP)',
+    covers: 'United States, Canada — duty prepaid, from 10 kg',
+    rates: null,
+    perKg: [1600, 1290, 1290, 1290, 1290, 1290, 1290],
+  },
+  AUNF: {
+    name: 'Australia / NF',
+    covers: 'Australia, Norfolk Island',
+    rates: [3310, 3970, 4630, 5290, 5960, 6620, 7280, 7940, 8440, 9100, 9760, 10420, 11070, 11710, 12360, 13000, 13640, 14280, 14930],
+    perKg: [1050, 860, 860, 860, 860, 860, 860],
+  },
+  UK: {
+    name: 'UK',
+    covers: 'United Kingdom',
+    rates: [2320, 2820, 3310, 3640, 3970, 4470, 4960, 5290, 5790, 6450, 6780, 7110, 7610, 7940, 8270, 8600, 9100, 9430, 9760],
+    perKg: [750, 680, 680, 680, 680, 680, 680],
+  },
   EUA: {
-    name: 'EU UPS A',
-    covers: 'Netherlands',
-    rates: [29.98, 34.39, 37.88, 42.31, 40.84, 50.21, 53.69, 58.97, 61.6, 66.01, 69.49, 73.91, 77.4, 81.82, 85.3, 87.91, 93.2, 95.04, 97.75],
-    perKg: [9, 7.68, 7.68, 7.68, 7.68, 7.68],
+    name: 'EU Zone A',
+    covers: 'Western & Central Europe — 23 countries',
+    rates: [3810, 4300, 4960, 5460, 5790, 6290, 6780, 7440, 7940, 8440, 9100, 9590, 10250, 10580, 10910, 11580, 12070, 12400, 12730],
+    perKg: [1160, 930, 930, 930, 930, 930, 930],
   },
   EUB: {
-    name: 'EU UPS B',
-    covers: 'Germany, Belgium',
-    rates: [26.12, 29.6, 34.03, 38.45, 36.98, 46.36, 49.84, 54.25, 57.73, 62.94, 65.64, 70.07, 73.55, 77.96, 81.44, 85.87, 89.35, 92.05, 95.42],
-    perKg: [9, 7.68, 7.68, 7.68, 7.68, 7.68],
+    name: 'EU Zone B',
+    covers: 'Bulgaria, Croatia, Greece',
+    rates: [5130, 5460, 6120, 6620, 6950, 7440, 7940, 8600, 9100, 9590, 10250, 10750, 11410, 11740, 12070, 12730, 13230, 13560, 13890],
+    perKg: [1160, 950, 950, 950, 950, 950, 950],
   },
-  EUC: {
-    name: 'EU UPS C',
-    covers: 'Denmark, France, Italy, Monaco',
-    rates: [35.6, 40.8, 43.5, 47.93, 46.46, 55.82, 59.32, 63.74, 67.21, 71.59, 75.12, 79.54, 83.02, 87.44, 90.92, 94.5, 98.82, 101.5, 105.35],
-    perKg: [9.6, 7.68, 7.68, 7.68, 7.68, 7.68],
+  CYMT: {
+    name: 'Cyprus / Malta',
+    covers: 'Cyprus, Malta',
+    rates: [10120, 10390, 10660, 10930, 11200, 11470, 11740, 12010, 12280, 12550, 12820, 13090, 13360, 13630, 13900, 14170, 14440, 14710, 14980],
+    perKg: [1490, 1320, 1210, 1210, 1210, 1210, 1210],
   },
-  EUD: {
-    name: 'EU UPS D',
-    covers: 'Finland, Ireland, Austria, Portugal, Spain, Sweden',
-    rates: [41.3, 45.72, 49.21, 53.64, 52.16, 61.54, 65.02, 69.44, 72.91, 77.34, 80.82, 85.24, 88.72, 93.14, 96.62, 100.88, 104.53, 109.45, 111.49],
-    perKg: [9.6, 7.68, 7.68, 7.68, 7.68, 7.68],
+  NOCH: {
+    name: 'Norway / Switzerland',
+    covers: 'Norway, Switzerland',
+    rates: [3970, 4570, 5760, 6750, 7540, 7740, 8140, 8340, 8930, 9720, 10120, 10520, 10720, 11110, 11310, 11710, 12100, 12500, 12900],
+    perKg: [1600, 1490, 1490, 1490, 1320, 1320, 1320],
   },
-  EUE: {
-    name: 'EU UPS E',
-    covers: 'Andorra, Norway, Switzerland, Iceland',
-    rates: [58.9, 63.31, 66.79, 71.21, 69.74, 79.13, 82.6, 86.9, 90.5, 94.93, 98.41, 103.6, 106.31, 110.69, 114.22, 118.63, 122.11, 124.81, 127.01],
-    perKg: [11.4, 8.88, 8.88, 8.88, 8.88, 8.88],
+  SIN: {
+    name: 'Singapore',
+    covers: 'Singapore',
+    rates: [1660, 2320, 2820, 3640, 3970, 4300, 5130, 5460, 5790, 6620, 6950, 7280, 8100, 8440, 8770, 9590, 9920, 10250, 11080],
+    perKg: [880, 610, 610, 610, 610, 610, 610],
   },
-  EUF: {
-    name: 'EU UPS F',
-    covers: 'Poland, Czech Republic',
-    rates: [36.05, 40.46, 43.94, 48.37, 46.9, 56.27, 59.75, 64.18, 67.66, 72.23, 75.56, 79.99, 83.46, 87.89, 91.37, 95.78, 99.26, 101.99, 104.7],
-    perKg: [9, 7.68, 7.68, 7.68, 7.68, 7.68],
+  SAU: {
+    name: 'Saudi Arabia',
+    covers: 'Saudi Arabia',
+    rates: [2820, 3040, 3360, 3680, 4000, 4320, 4570, 4820, 5080, 5720, 5860, 6390, 6540, 7040, 7210, 7690, 7880, 8340, 8530],
+    perKg: [850, 610, 610, 610, 610, 610, 610],
   },
-  EUG: {
-    name: 'EU UPS G',
-    covers: 'Malta, Cyprus',
-    rates: [92.51, 96.61, 100.66, 101.32, 103.86, 113.06, 116.95, 121.72, 125.1, 128.81, 133.25, 137.34, 141.4, 145.85, 149.53, 153.95, 157.68, 162.13, 164.66],
-    perKg: [14.4, 11.4, 10.5, 10.5, 10.5, 10.5],
+  KWI: {
+    name: 'Kuwait',
+    covers: 'Kuwait',
+    rates: [2310, 2910, 3800, 4040, 4280, 4530, 4770, 5010, 5260, 5760, 5880, 6420, 6570, 7070, 7240, 7720, 7910, 8370, 8550],
+    perKg: [830, 730, 680, 650, 640, 640, 640],
   },
-  EUH: {
-    name: 'EU UPS H',
-    covers: 'Bulgaria, Estonia, Greece, Hungary, Croatia, Latvia, Lithuania, Romania, Slovenia, Slovakia',
-    rates: [42.41, 43.4, 50.32, 51.3, 53.27, 62.72, 66.12, 71.14, 74.02, 78.1, 81.92, 86.51, 89.82, 94.26, 97.73, 102.16, 105.64, 109.54, 111.58],
-    perKg: [10.2, 8.4, 8.28, 8.28, 8.28, 8.28],
+  OMN: {
+    name: 'Oman',
+    covers: 'Oman',
+    rates: [2310, 2710, 3400, 4060, 4450, 4930, 5370, 5720, 5980, 6630, 6900, 7530, 7830, 8430, 8760, 9340, 9670, 10240, 10580],
+    perKg: [1040, 920, 810, 770, 730, 680, 640],
   },
-  Z10: {
-    name: 'Zone 10 UPS',
-    covers: 'Asia, Middle East & Eastern Europe',
-    rates: [87.53, 90.82, 94.12, 97.42, 95.77, 104.02, 107.32, 110.62, 113.92, 117.22, 120.52, 123.82, 127.1, 130.4, 133.7, 137, 140.3, 143.6, 146.9],
-    perKg: [12.6, 9.3, 9.18, 9.18, 9.18, 9.18],
-  },
-  Z11: {
-    name: 'Zone 11 UPS',
-    covers: 'USA, Australia, NZ, Canada, Mexico, Japan — normal items',
-    rates: [73.88, 76.49, 79.1, 81.72, 79.38, 86.95, 89.57, 92.17, 94.79, 97.4, 100.02, 102.64, 105.24, 107.86, 110.47, 113.09, 115.7, 118.31, 120.92],
-    perKg: [10.8, 8.7, 8.7, 8.7, 8.7, 8.7],
-  },
-  YYZ: {
-    name: 'YYZ DDP',
-    covers: 'Canada — Yukon (YT), duty paid',
-    rates: [30.67, 37.15, 43.62, 50.1, 49.97, 63.05, 69.52, 75.98, 86.39, 89.94, 97.42, 104.89, 112.37, 119.84, 127.32, 134.8, 142.27, 149.75, 161.81],
-    perKg: [13.5, 11.7, 11.7, 11.7, 11.7, 11.7],
+  QAT: {
+    name: 'Qatar',
+    covers: 'Qatar',
+    rates: [2520, 3400, 4370, 5170, 5970, 6580, 6800, 6990, 7170, 7720, 7710, 8410, 8480, 9130, 9220, 9840, 9970, 10560, 11180],
+    perKg: [1050, 660, 660, 660, 660, 660, 660],
   },
   DXB: {
-    name: 'DXB',
+    name: 'Dubai (UAE)',
     covers: 'United Arab Emirates',
-    rates: [12.24, 14.33, 16.4, 18.49, 20.58, 22.67, 24.76, 26.83, 28.92, 31.01, 33.66, 35.99, 38.94, 40.94, 42.58, 45.92, 47.72, 50.9, 53.14],
-    perKg: [5.04, 4.2, 4.2, 3.6, 3.6, 3.6],
+    rates: [1510, 1640, 2070, 2510, 3140, 3770, 4170, 4770, 5370, 4390, 4950, 5400, 5360, 5770, 5880, 6270, 6520, 6900, 7150],
+    perKg: [500, 440, 420, 390, 390, 390, 390],
   },
-  JFKDDU: {
-    name: 'JFK DDU',
-    covers: 'USA duties unpaid — except Hawaii & Alaska',
-    rates: [27.84, 35.08, 42.31, 46.73, 50.17, 64.01, 71.24, 79.42, 84.78, 91.07, 97.37, 107.41, 115.58, 123.76, 130.06, 136.34, 144.52, 149.88, 156.18],
-    perKg: [13.2, 11.7, 11.7, 11.7, 11.7, 11.7],
+  KOR: {
+    name: 'Korea',
+    covers: 'South Korea',
+    rates: [1800, 2040, 2400, 2760, 3000, 3360, 3720, 3960, 4320, 4680, 5040, 5400, 5640, 5880, 6120, 6420, 6720, 7080, 7440],
+    perKg: [720, 580, 580, 580, 580, 580, 580],
   },
-  JFKDDP: {
-    name: 'JFK DDP',
-    covers: 'USA duties prepaid — except Hawaii & Alaska',
-    rates: [28.31, 36, 43.69, 48.58, 52.49, 66.78, 74.47, 83.11, 88.93, 95.69, 102.44, 112.96, 121.58, 130.21, 136.98, 143.74, 152.36, 158.18, 164.94],
-    perKg: [13.5, 12.3, 12.3, 12.3, 12.3, 12.3],
-  },
-  AKL: {
-    name: 'AKL',
-    covers: 'New Zealand — except islands',
-    rates: [30.74, 38.39, 48.6, 56.24, 62.24, 71.53, 79.18, 86.82, 94.48, 102.12, 109.76, 117.41, 125.05, 132.7, 140.34, 147.98, 155.63, 163.28, 170.93],
-    perKg: [12.9, 9.96, 9.96, 9.96, 9.96, 9.96],
-  },
-  ICN: {
-    name: 'ICN',
-    covers: 'South Korea direct',
-    rates: [21.23, 24, 26.77, 29.54, 32.3, 35.08, 37.85, 40.62, 48, 49.85, 52.62, 55.38, 58.15, 65.54, 68.3, 70.15, 72.92, 75.7, 68.81],
-    perKg: [5.7, 5.7, 5.7, 5.7, 5.7, 5.7],
-  },
-  NPPOST: {
-    name: 'NP Post',
-    covers: 'Japan — food items',
-    rates: [22.02, 25.54, 29.04, 32.56, 36.06, 39.58, 43.08, 46.6, 50.1, 53.62, 57.12, 60.64, 64.14, 67.66, 71.16, 74.68, 78.18, 81.7, 85.2],
-    perKg: [7.56, 5.7, 5.7, 5.7, 5.7, 5.7],
-  },
-  SAGAWA: {
-    name: 'Sagawa',
+  JPN: {
+    name: 'Japan',
     covers: 'Japan',
-    rates: [32.11, 32.93, 34.74, 36.7, 38.66, 42.6, 46.54, 49.15, 53.09, 56.36, 64.02, 69.96, 72.6, 75.24, 77.88, 80.52, 83.16, 88.44, 91.08],
-    perKg: [9.3, 5.7, 5.7, 5.7, 5.7, 5.7],
-  },
-  SELF: {
-    name: 'Self',
-    covers: 'Hong Kong',
-    rates: [4.62, 7.62, 9.58, 11.54, 14.62, 16.38, 18.34, 20.3, 22.26, 24.11, 28.85, 31.58, 32.77, 34.73, 36.7, 38.65, 40.62, 42.58, 44.54],
-    perKg: [3.78, 5.7, 5.7, 5.7, 5.7, 5.7],
-  },
-  SYDMEL: {
-    name: 'SYD/MEL',
-    covers: 'Australia — except 6215–6797 postcodes',
-    rates: [24.65, 26.82, 33.19, 38.64, 43.38, 51.41, 57.79, 64.18, 70.55, 73.19, 79.57, 85.96, 91.4, 97.78, 103.22, 106.8, 111.12, 115.81, 121.73],
-    perKg: [9.3, 8.1, 8.1, 8.1, 8.1, 8.1],
-  },
-  LHR: {
-    name: 'LHR DPD',
-    covers: 'UK — except Scotland & N. Ireland',
-    rates: [36.06, 38.54, 41.02, 43.49, 45.96, 49.2, 53.02, 56.83, 61.42, 64.44, 68.64, 72.84, 77, 81.2, 85.38, 89.57, 93.74, 97.94, 102.11],
-    perKg: [6.18, 5.7, 5.7, 5.7, 5.7, 5.7],
-  },
-  J1000: {
-    name: '1000 Japan',
-    covers: 'Japan via Sagawa — no medicine & seeds',
-    rates: [22.2, 24.6, 25.8, 28.2, 30.6, 33, 34.2, 36.6, 37.8, 41.4, 43.8, 45, 47.4, 49.8, 53.4, 54.6, 57, 59.4, 61.8],
-    perKg: [6, 5.7, 5.7, 5.4, 4.68, 4.44],
+    rates: [1800, 2280, 2760, 3240, 3720, 4080, 4320, 4920, 5400, 5880, 6360, 6840, 7560, 7920, 8400, 8880, 9360, 9840, 10200],
+    perKg: [830, 660, 660, 660, 660, 660, 660],
   },
 };
 
-// Destination country -> available routes, preferred route first.
+// Destination country -> available lanes, preferred lane first. Only the
+// destinations the August 2026 card actually prices are listed; anything not
+// here is quoted by hand rather than guessed from a neighbouring lane.
 export const ECON_COUNTRY_GROUPS = [
   {
     group: 'Europe & UK',
     countries: {
-      Albania: ['Z10'], Andorra: ['EUE'], Austria: ['EUD'], Belgium: ['EUB'],
-      Bulgaria: ['EUH'], Croatia: ['EUH'], Cyprus: ['EUG'], 'Czech Republic': ['EUF'],
-      Denmark: ['EUC'], Estonia: ['EUH'], Finland: ['EUD'], France: ['EUC'],
-      Germany: ['EUB'], Greece: ['EUH'], Hungary: ['EUH'], Iceland: ['EUE'],
-      Ireland: ['EUD'], Italy: ['EUC'], Latvia: ['EUH'], Lithuania: ['EUH'],
-      Malta: ['EUG'], Monaco: ['EUC'], Netherlands: ['EUA'], Norway: ['EUE'],
-      Poland: ['EUF'], Portugal: ['EUD'], Romania: ['EUH'], Serbia: ['Z10'],
-      Slovakia: ['EUH'], Slovenia: ['EUH'], Spain: ['EUD'], Sweden: ['EUD'],
-      Switzerland: ['EUE'], Ukraine: ['Z10'], 'United Kingdom': ['LHR'],
+      Austria: ['EUA'], Belgium: ['EUA'], Bulgaria: ['EUB'], Croatia: ['EUB'],
+      Cyprus: ['CYMT'], 'Czech Republic': ['EUA'], Denmark: ['EUA'], Estonia: ['EUA'],
+      Finland: ['EUA'], France: ['EUA'], Germany: ['EUA'], Greece: ['EUB'],
+      Hungary: ['EUA'], Ireland: ['EUA'], Italy: ['EUA'], Latvia: ['EUA'],
+      Lithuania: ['EUA'], Luxembourg: ['EUA'], Malta: ['CYMT'], Monaco: ['EUA'],
+      Netherlands: ['EUA'], Norway: ['NOCH'], Poland: ['EUA'], Portugal: ['EUA'],
+      Romania: ['EUA'], Slovakia: ['EUA'], Slovenia: ['EUA'], Spain: ['EUA'],
+      Sweden: ['EUA'], Switzerland: ['NOCH'], 'United Kingdom': ['UK'],
     },
   },
   {
-    group: 'Asia · Middle East · Africa',
+    group: 'Asia & Middle East',
     countries: {
-      Bahrain: ['Z10'], China: ['Z10'], Egypt: ['Z10'], 'Hong Kong': ['SELF', 'Z10'],
-      Indonesia: ['Z10'], Iraq: ['Z10'], Israel: ['Z10'], Japan: ['SAGAWA', 'NPPOST', 'J1000', 'Z11'],
-      Jordan: ['Z10'], Kuwait: ['Z10'], Macau: ['Z10'], Malaysia: ['Z10'],
-      Oman: ['Z10'], Philippines: ['Z10'], Qatar: ['Z10'], 'South Korea': ['ICN', 'Z10'],
-      Thailand: ['Z10'], 'United Arab Emirates': ['DXB'], Vietnam: ['Z10'],
+      Japan: ['JPN'], Kuwait: ['KWI'], Oman: ['OMN'], Qatar: ['QAT'],
+      'Saudi Arabia': ['SAU'], Singapore: ['SIN'], 'South Korea': ['KOR'],
+      'United Arab Emirates': ['DXB'],
     },
   },
   {
     group: 'Americas',
     countries: {
-      Canada: ['Z11', 'YYZ'], Mexico: ['Z11'], USA: ['JFKDDU', 'JFKDDP', 'Z11'],
+      Canada: ['USCA', 'USCADDP'], USA: ['USCA', 'USCADDP'],
     },
   },
   {
     group: 'Oceania',
     countries: {
-      Australia: ['SYDMEL', 'Z11'], 'New Zealand': ['AKL', 'Z11'],
+      Australia: ['AUNF'], 'Norfolk Island': ['AUNF'],
     },
   },
 ];
 
 export const ECON_COUNTRIES = Object.assign({}, ...ECON_COUNTRY_GROUPS.map((g) => g.countries));
 
-// Pass-through charges from the supplier chart. Unlike the rates above these
-// carry no Packrs margin, so they are quoted exactly as the carrier bills them.
+// Zone definitions exactly as the card prints them. Kept separate from a lane's
+// `covers` blurb because that string has to fit inside a <select> option.
+export const ECON_ZONES = {
+  'EU Zone A': ['Germany', 'Austria', 'Belgium', 'Denmark', 'Czech Republic', 'Finland', 'France', 'Monaco', 'Luxembourg', 'Netherlands', 'Hungary', 'Italy', 'Poland', 'Romania', 'Slovakia', 'Slovenia', 'Ireland', 'Portugal', 'Spain', 'Estonia', 'Lithuania', 'Latvia', 'Sweden'],
+  'EU Zone B': ['Bulgaria', 'Croatia', 'Greece'],
+};
+
+// Surcharges, limits and terms as printed on the supplier's card. These carry
+// no Packrs margin — they are billed exactly as the carrier charges them, and
+// in the carrier's currency where the card quotes EUR or USD.
 export const ECON_TERMS = {
   volumetricDivisor: 5000,
-  customsPerBoxOver10kgNpr: 700,
-  customsPerKgOver0_5kgNpr: 7,
-  nepalPostPerConsignmentNpr: 600,
-  nepalPostPerBoxNpr: 200,
-  lostParcelCompensationUsd: 100,
-  insuranceMaxUsd: 1000,
-  bottledGoodsPerBottleNpr: 1000,
-  misdeclaredFoodEuropeEur: 300,
-  latePaymentIncreasePct: 10,
-  latePaymentAfterDays: 30,
-  nzIslandUsd: 30,
-  nzIslandPerKgUsd: 1.5,
-  japanIslandDocUsd: 15,
-  japanIslandBoxUsd: 25,
-  remoteArea: 'USA $10 (JFK) or GBP 0.70/kg (LHR); Canada $25; Japan $25; UK GBP 25; Australia $40; New Zealand $6; Europe EUR 25 per box.',
-  weightLimits: 'JFK USA 21 kg; LHR UPS 24 kg; LHR FedEx 25 kg; DXB UPS 24 kg; UK 29 kg; Canada 30 kg; Europe / NZ / Japan 25 kg; Australia 29 kg.',
+  nepalCustomsPerBoxNpr: 1500,
+  tiaPerKgNpr: 12,
+  // Printed as "EUR 600" on the card. Steep next to the EUR 50 bad-address fee,
+  // but reproduced as printed rather than assumed to be a typo — confirm with
+  // the supplier before quoting it to a customer.
+  remoteAreaEur: 600,
+  remoteAreaApplies: 'DPD / UPS service to EU Zone A and B',
+  badAddressEur: 50,
+  woodenBoxEur: 12,
+  dryMeatPerKgNpr: 500,
+  dryMeatApplies: 'UK and Europe',
+  fraSurchargeUsd: 10,
+  fraSurchargeApplies: '25 kg up to 31 kg',
+  weightLimitEuropeKg: 28,
+  weightLimitUsCanadaKg: 24,
+  weightLimitAustraliaKg: 24,
+  validity: 'Until further notice',
 };
 
 /**
  * Mirror of the published Economy tariff arithmetic:
- *  - Up to 9.5 kg: billed at the next 0.5 kg slab.
- *  - Above 9.5 kg: per-kg pricing on the weight rounded up to the next whole kg
+ *  - Up to 9.5 kg: billed at the next 0.5 kg slab, at a flat per-shipment price.
+ *  - From 10 kg: per-kg pricing on the weight rounded up to the next whole kg
  *    (total = per-kg rate x billed kg, not a base + add-on).
  * Chargeable weight is the higher of actual and volumetric weight; the caller
  * passes whichever applies.
@@ -253,6 +252,9 @@ export function calcEconomyRate(country, weightKg, routeCode) {
   if (!weight || weight <= 0) return { error: 'Enter a valid weight.' };
 
   if (weight <= ECON_SLAB_MAX_KG) {
+    if (!route.rates) {
+      return { error: `${route.name} is priced from ${ECON_PER_KG_MIN_KG} kg. Pick another route for lighter shipments.` };
+    }
     const idx = ECON_SLABS.findIndex((s) => s >= weight - 1e-9);
     return { rate: route.rates[idx], slab: ECON_SLABS[idx], route: code, mode: 'slab' };
   }
