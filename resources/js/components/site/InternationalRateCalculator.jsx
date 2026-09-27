@@ -12,12 +12,12 @@ const FROM = 'Kathmandu · Nepal';
 
 // The two service levels the page offers. Express is DHL (fast); Economy is
 // the consolidator network (cheaper). Both are priced in NPR.
+const ECON_ROUTE_COUNT = Object.keys(ECON_ROUTES).length;
+
 export const LEVELS = [
   { value: 'express', label: 'Express', hint: 'DHL · NPR' },
-  { value: 'economy', label: 'Economy', hint: '16 routes · NPR' },
+  { value: 'economy', label: 'Economy', hint: `${ECON_ROUTE_COUNT} routes · NPR` },
 ];
-
-const ECON_ROUTE_COUNT = Object.keys(ECON_ROUTES).length;
 
 const SERVICES = [
   { value: 'Document', label: 'Document', hint: '≤ 2 kg' },
@@ -37,7 +37,7 @@ export default function InternationalRateCalculator({ level = 'express', onLevel
 
   // Economy (consolidator) inputs — its own country list, so its own state.
   const [econCountry, setEconCountry] = useState('USA');
-  const [econRoute, setEconRoute] = useState('USCA');
+  const [econRoute, setEconRoute] = useState('USCAFDX');
 
   // Weight is shared: switching service level keeps what you already typed.
   const [weight, setWeight] = useState('2');
