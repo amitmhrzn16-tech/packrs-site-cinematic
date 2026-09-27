@@ -36,7 +36,7 @@ const ECONOMY_TERMS = [
   { title: 'Bad address', desc: `EUR ${E.badAddressEur} if the delivery address is wrong or incomplete. Wooden box, where one is required: EUR ${E.woodenBoxEur} extra.` },
   { title: 'Weight limit per box', desc: `${E.weightLimitEuropeKg} kg to the UK and all of Europe; ${E.weightLimitUsCanadaKg} kg to the USA and Canada; ${E.weightLimitAustraliaKg} kg to Australia. Heavier consignments are split across boxes.` },
   { title: 'Restricted & surcharged goods', desc: `Dry meat to ${E.dryMeatApplies}: ${npr(E.dryMeatPerKgNpr)} per kg extra. Shipments routed via Frankfurt, ${E.fraSurchargeApplies}: USD ${E.fraSurchargeUsd} extra per shipment.` },
-  { title: 'Duty paid or duty unpaid to North America', desc: `${ECON_ROUTES.USCA.name} leaves duty and tax for the consignee to settle on arrival. ${ECON_ROUTES.USCADDP.name} prepays both, and is priced from ${ECON_PER_KG_MIN_KG} kg only.` },
+  { title: 'Duty prepaid to North America', desc: `Every USA and Canada route prepays duty and tax. ${ECON_ROUTES.USCAFDX.name} is priced from 0.5 kg; ${ECON_ROUTES.USJFK.name} from 5 kg and also takes food items; ${ECON_ROUTES.USCADDP.name} from ${ECON_PER_KG_MIN_KG} kg only.` },
   { title: 'EU zones', desc: `Zone A: ${ECON_ZONES['EU Zone A'].join(', ')}. Zone B: ${ECON_ZONES['EU Zone B'].join(', ')}.` },
 ];
 
@@ -50,7 +50,7 @@ export default function InternationalRatesPage() {
       <DynamicSeo
         page="international-rates"
         title="International Shipping Rates — Packrs Courier"
-        description="Express and Economy international shipping rates from Nepal. DHL Express across 7 zones up to 30 kg, or the Economy network across 16 routes to Europe, the Gulf, Asia, North America and Oceania — all quoted in NPR."
+        description="Express and Economy international shipping rates from Nepal. DHL Express across 7 zones up to 30 kg, or the Economy network across 19 routes to Europe, the Gulf, Asia, North America and Oceania — all quoted in NPR."
       />
       <PageHeader
         eyebrow="International Shipping · Express & Economy"
