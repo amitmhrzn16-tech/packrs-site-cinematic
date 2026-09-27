@@ -234,23 +234,24 @@ export const ECON_ZONES = {
   'EU Zone B': ['Bulgaria', 'Croatia', 'Greece'],
 };
 
-// Surcharges, limits and terms as printed on the supplier's card. These carry
-// no Packrs margin — they are billed exactly as the carrier charges them, and
-// in the carrier's currency where the card quotes EUR or USD.
+// Surcharges, limits and terms. These carry no margin and are billed in the
+// currency shown. The amounts are deliberately kept at the 01/08/2026 card
+// figures: the 20/09/2026 card prints lower ones, but only the freight rates
+// were taken from it.
 export const ECON_TERMS = {
   volumetricDivisor: 5000,
-  nepalCustomsPerBoxNpr: 350,
-  tiaPerKgNpr: 7,
-  // Printed as "EUR 545" on the card. Steep next to the EUR 25 bad-address fee,
+  nepalCustomsPerBoxNpr: 1500,
+  tiaPerKgNpr: 12,
+  // Printed as "EUR 600" on the card. Steep next to the EUR 50 bad-address fee,
   // but reproduced as printed rather than assumed to be a typo — confirm with
   // the supplier before quoting it to a customer.
-  remoteAreaEur: 545,
+  remoteAreaEur: 600,
   remoteAreaApplies: 'DPD / UPS service to EU Zone A and B',
-  badAddressEur: 25,
-  woodenBoxEur: 7,
-  dryMeatPerKgNpr: 300,
+  badAddressEur: 50,
+  woodenBoxEur: 12,
+  dryMeatPerKgNpr: 500,
   dryMeatApplies: 'UK and Europe',
-  fraSurchargeUsd: 7,
+  fraSurchargeUsd: 10,
   fraSurchargeApplies: '25 kg up to 31 kg',
   weightLimitEuropeKg: 28,
   weightLimitUsCanadaKg: 24,
